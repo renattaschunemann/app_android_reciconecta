@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Person
@@ -35,7 +35,7 @@ import br.com.fiap.reciconecta.R
 @Composable
 fun InitialScreen(modifier: Modifier = Modifier) {
     // State to track which option is selected (1 = Pessoa Física, 2 = Empresa, 3 = Catador/Cooperativa)
-    var selectedOption by remember { mutableStateOf(3) }
+    var selectedOption by remember { mutableIntStateOf(3) }
 
     Column(
         modifier = modifier
@@ -210,7 +210,7 @@ fun OptionCard(
 
         // Right Arrow Icon
         Icon(
-            imageVector = Icons.Default.ArrowForward,
+            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
             contentDescription = "Arrow right",
             tint = arrowColor,
             modifier = Modifier.size(20.dp)
