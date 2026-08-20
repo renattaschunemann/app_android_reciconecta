@@ -13,12 +13,12 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -26,11 +26,12 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.withStyle
 import br.com.fiap.reciconecta.R
+import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
 
 @Composable
 fun InitialScreen(modifier: Modifier = Modifier) {
@@ -40,7 +41,7 @@ fun InitialScreen(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F7F6))
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 24.dp, vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
@@ -54,8 +55,8 @@ fun InitialScreen(modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp)
-                    .clip(RoundedCornerShape(28.dp))
-                    .background(Color(0xFFEBF1ED))
+                    .clip(MaterialTheme.shapes.large)
+                    .background(MaterialTheme.colorScheme.primaryContainer)
                     .padding(24.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -71,9 +72,8 @@ fun InitialScreen(modifier: Modifier = Modifier) {
 
             Text(
                 text = "Conectando quem recicla com quem coleta",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Normal,
-                color = Color(0xFF6F7973),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
         }
@@ -84,9 +84,8 @@ fun InitialScreen(modifier: Modifier = Modifier) {
         ) {
             Text(
                 text = "COMO VOCÊ VAI USAR O APP?",
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF5A625C),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 letterSpacing = 1.2.sp,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
@@ -123,7 +122,7 @@ fun InitialScreen(modifier: Modifier = Modifier) {
         // Bottom Section: Terms of Use
         val termsText = buildAnnotatedString {
             append("Ao continuar você concorda com os ")
-            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color(0xFF00381C))) {
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
                 append("Termos de Uso")
             }
         }
@@ -131,7 +130,7 @@ fun InitialScreen(modifier: Modifier = Modifier) {
         Text(
             text = termsText,
             fontSize = 12.sp,
-            color = Color(0xFF6F7973),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .fillMaxWidth()
@@ -150,23 +149,23 @@ fun OptionCard(
     onClick: () -> Unit
 ) {
     // Style configurations depending on state (selected vs unselected)
-    val cardBackground = if (isSelected) Color(0xFFFDF1E8) else Color.White
-    val cardBorderColor = if (isSelected) Color(0xFFE47B3E) else Color(0xFFE1E4E2)
-    val textColor = if (isSelected) Color(0xFF53250A) else Color(0xFF2C322E)
-    val descColor = if (isSelected) Color(0xFF7A4A2F) else Color(0xFF6F7973)
-    val arrowColor = if (isSelected) Color(0xFFD9621E) else Color(0xFF8F9A93)
-    val iconBgColor = if (isSelected) Color(0xFFFDE3D2) else Color(0xFFE5EDE9)
-    val iconColor = if (isSelected) Color(0xFFD9621E) else Color(0xFF2E6C40)
+    val cardBackground = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+    val cardBorderColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+    val textColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+    val descColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
+    val arrowColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+    val iconBgColor = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant
+    val iconColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(MaterialTheme.shapes.medium)
             .background(cardBackground)
             .border(
                 width = if (isSelected) 1.5.dp else 1.dp,
                 color = cardBorderColor,
-                shape = RoundedCornerShape(16.dp)
+                shape = MaterialTheme.shapes.medium
             )
             .clickable(onClick = onClick)
             .padding(16.dp),
@@ -196,14 +195,13 @@ fun OptionCard(
         ) {
             Text(
                 text = title,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium,
                 color = textColor
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = description,
-                fontSize = 13.sp,
+                style = MaterialTheme.typography.bodyLarge.copy(fontSize = 13.sp),
                 color = descColor
             )
         }
@@ -221,5 +219,7 @@ fun OptionCard(
 @Preview(showBackground = true)
 @Composable
 private fun InitialScreenPreview() {
-    InitialScreen()
+    ReciconectaTheme {
+        InitialScreen()
+    }
 }
