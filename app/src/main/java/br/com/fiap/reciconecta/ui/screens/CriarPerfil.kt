@@ -25,6 +25,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import br.com.fiap.reciconecta.R
+import androidx.compose.ui.res.stringResource
 import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,13 +79,13 @@ fun CriarPerfilScreen(
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(
-                            text = "Criar Perfil",
+                            text = stringResource(R.string.create_profile_title),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Pessoa Física",
+                            text = stringResource(R.string.profile_option_individual),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -97,7 +99,7 @@ fun CriarPerfilScreen(
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
                         Text(
-                            text = "Passo 1 de 1",
+                            text = stringResource(R.string.step_badge_text),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -149,7 +151,7 @@ fun CriarPerfilScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Criar Perfil",
+                                text = stringResource(R.string.create_profile_title),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
@@ -213,7 +215,7 @@ fun CriarPerfilScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Toque no ícone para alterar o avatar",
+                text = stringResource(R.string.avatar_change_instruction),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -221,60 +223,60 @@ fun CriarPerfilScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Form Fields
-            FormLabel(text = "NOME COMPLETO *")
+            FormLabel(text = stringResource(R.string.label_full_name))
             FormTextField(
                 value = nomeCompleto,
                 onValueChange = { nomeCompleto = it },
-                placeholder = "Como você quer ser chamado(a)"
+                placeholder = stringResource(R.string.placeholder_full_name)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            FormLabel(text = "E-MAIL *")
+            FormLabel(text = stringResource(R.string.label_email))
             FormTextField(
                 value = email,
                 onValueChange = { email = it },
-                placeholder = "seu@email.com"
+                placeholder = stringResource(R.string.placeholder_email)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            FormLabel(text = "TELEFONE / WHATSAPP *")
+            FormLabel(text = stringResource(R.string.label_phone))
             FormTextField(
                 value = telefone,
                 onValueChange = { telefone = it },
-                placeholder = "(11) 9 0000-0000"
+                placeholder = stringResource(R.string.placeholder_phone)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            FormLabel(text = "CPF *")
+            FormLabel(text = stringResource(R.string.label_cpf))
             FormTextField(
                 value = cpf,
                 onValueChange = { cpf = it },
-                placeholder = "000.000.000-00"
+                placeholder = stringResource(R.string.placeholder_cpf)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            FormLabel(text = "BAIRRO / CEP")
+            FormLabel(text = stringResource(R.string.label_neighborhood_cep))
             FormTextField(
                 value = bairroCep,
                 onValueChange = { bairroCep = it },
-                placeholder = "Ex.: Vila Mariana, 04101-000"
+                placeholder = stringResource(R.string.placeholder_neighborhood_cep)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // Terms of Use and Privacy Policy Consent
             val consentText = buildAnnotatedString {
-                append("Ao criar o perfil você concorda com os ")
+                append(stringResource(R.string.create_profile_consent_part1))
                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
-                    append("Termos de Uso")
+                    append(stringResource(R.string.terms_of_use))
                 }
-                append(" e a ")
+                append(stringResource(R.string.create_profile_consent_part2))
                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
-                    append("Política de Privacidade")
+                    append(stringResource(R.string.privacy_policy))
                 }
                 append(".")
             }

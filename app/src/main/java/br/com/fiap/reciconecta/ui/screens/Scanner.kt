@@ -25,6 +25,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.sp
+import br.com.fiap.reciconecta.R
+import androidx.compose.ui.res.stringResource
 import br.com.fiap.reciconecta.ui.theme.DarkAccent
 import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
 import br.com.fiap.reciconecta.ui.theme.ScannerBackground
@@ -56,7 +59,7 @@ fun ScannerScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Identificar Material",
+                        text = stringResource(R.string.scanner_title),
                         style = MaterialTheme.typography.titleLarge.copy(fontSize = 22.sp),
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -99,20 +102,20 @@ fun ScannerScreen(
                 ) {
                     BottomNavItem(
                         icon = Icons.Default.Home,
-                        label = "Início",
+                        label = stringResource(R.string.nav_home),
                         isSelected = false,
                         onClick = { onNavigate("inicio") }
                     )
                     BottomNavItem(
                         icon = Icons.Default.Autorenew,
-                        label = "Coletas",
+                        label = stringResource(R.string.nav_collections),
                         isSelected = true,
                         hasNotification = true,
                         onClick = { onNavigate("coletas") }
                     )
                     BottomNavItem(
                         icon = Icons.Default.Person,
-                        label = "Perfil",
+                        label = stringResource(R.string.nav_profile),
                         isSelected = false,
                         onClick = { onNavigate("perfil") }
                     )
@@ -161,7 +164,7 @@ fun ScannerScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    text = "Posicione o material na moldura",
+                    text = stringResource(R.string.scanner_instruction),
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color.White.copy(alpha = 0.8f)
                 )
@@ -177,7 +180,7 @@ fun ScannerScreen(
             ) {
                 BottomActionButton(
                     icon = Icons.Default.QrCode,
-                    label = "Código",
+                    label = stringResource(R.string.scanner_action_code),
                     tintColor = DarkAccent,
                     backgroundColor = ScannerCardBackground,
                     onClick = onCodeClick
@@ -204,7 +207,7 @@ fun ScannerScreen(
 
                 BottomActionButton(
                     icon = Icons.Default.Photo,
-                    label = "Galeria",
+                    label = stringResource(R.string.scanner_action_gallery),
                     tintColor = DarkAccent,
                     backgroundColor = ScannerCardBackground,
                     onClick = onGalleryClick

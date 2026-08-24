@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Recycling
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -31,7 +33,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.withStyle
 import br.com.fiap.reciconecta.R
+import br.com.fiap.reciconecta.ui.theme.ChartAmber
+import br.com.fiap.reciconecta.ui.theme.OrangeCardBackground
+import br.com.fiap.reciconecta.ui.theme.OrangeCardBorder
+import br.com.fiap.reciconecta.ui.theme.OrangeIconColor
+import br.com.fiap.reciconecta.ui.theme.OrangeIconBackground
 import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
+import androidx.compose.ui.graphics.Color
+
 
 @Composable
 fun InitialScreen(modifier: Modifier = Modifier) {
@@ -71,7 +80,7 @@ fun InitialScreen(modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Conectando quem recicla com quem coleta",
+                text = stringResource(R.string.onboarding_subtitle),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -83,7 +92,7 @@ fun InitialScreen(modifier: Modifier = Modifier) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = "COMO VOCÊ VAI USAR O APP?",
+                text = stringResource(R.string.onboarding_selection_title),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 letterSpacing = 1.2.sp,
@@ -91,8 +100,8 @@ fun InitialScreen(modifier: Modifier = Modifier) {
             )
 
             OptionCard(
-                title = "Pessoa Física",
-                description = "Quero reciclar em casa",
+                title = stringResource(R.string.profile_option_individual),
+                description = stringResource(R.string.profile_option_individual_desc),
                 icon = Icons.Default.Person,
                 isSelected = selectedOption == 1,
                 onClick = { selectedOption = 1 }
@@ -101,8 +110,8 @@ fun InitialScreen(modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(12.dp))
 
             OptionCard(
-                title = "Empresa",
-                description = "Gerenciar resíduos corporativos",
+                title = stringResource(R.string.profile_option_company),
+                description = stringResource(R.string.profile_option_company_desc),
                 icon = Icons.Default.Home,
                 isSelected = selectedOption == 2,
                 onClick = { selectedOption = 2 }
@@ -111,19 +120,23 @@ fun InitialScreen(modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(12.dp))
 
             OptionCard(
-                title = "Catador / Cooperativa",
-                description = "Ofereço serviços de coleta",
-                icon = Icons.Default.Refresh,
+                title = stringResource(R.string.profile_option_collector),
+                description = stringResource(R.string.profile_option_collector_desc),
+                icon = Icons.Default.Recycling,
                 isSelected = selectedOption == 3,
+                selectedCardBgColor = OrangeCardBackground,
+                selectedCardBorderColor = OrangeCardBorder,
+                selectedIconColor = OrangeIconColor,
+                selectedIconBgColor = OrangeIconBackground,
                 onClick = { selectedOption = 3 }
             )
         }
 
         // Bottom Section: Terms of Use
         val termsText = buildAnnotatedString {
-            append("Ao continuar você concorda com os ")
+            append(stringResource(R.string.onboarding_terms_consent))
             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
-                append("Termos de Uso")
+                append(stringResource(R.string.terms_of_use))
             }
         }
 
@@ -146,16 +159,28 @@ fun OptionCard(
     description: String,
     icon: ImageVector,
     isSelected: Boolean,
+    selectedCardBgColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    selectedCardBorderColor: Color = MaterialTheme.colorScheme.primary,
+    selectedIconColor: Color? = null,
+    selectedIconBgColor: Color? = null,
     onClick: () -> Unit
 ) {
     // Style configurations depending on state (selected vs unselected)
-    val cardBackground = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
-    val cardBorderColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+    val cardBackground = if (isSelected) selectedCardBgColor else MaterialTheme.colorScheme.surface
+    val cardBorderColor = if (isSelected) selectedCardBorderColor else MaterialTheme.colorScheme.outline
     val textColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
     val descColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
     val arrowColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
-    val iconBgColor = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant
-    val iconColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+    val iconBgColor = if (isSelected) {
+        selectedIconBgColor ?: MaterialTheme.colorScheme.secondaryContainer
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant
+    }
+    val iconColor = if (isSelected) {
+        selectedIconColor ?: MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
 
     Row(
         modifier = Modifier

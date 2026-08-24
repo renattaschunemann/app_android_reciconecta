@@ -22,6 +22,10 @@ val LightOutline = Color(0xFFE9EBEA) // #E9EBEA
 val LightInputBackground = Color(0xFFF0F5F2) // #F0F5F2
 val LightSwitchBackground = Color(0xFFA7C4B5) // #A7C4B5
 val LightRing = Color(0xFF1B4332) // #1B4332
+val OrangeCardBackground = Color(0xFFFFF5EEL) // #FFF5EE
+val OrangeCardBorder = Color(0xFFEE8F46L) // #EE8F46
+val OrangeIconColor = Color(0xFFD9621EL) // #D9621E
+val OrangeIconBackground = Color(0xFFFDE3D2L) // #FDE3D2
 
 // Chart colors
 val ChartGreenDark = Color(0xFF1B4332) // #1B4332
