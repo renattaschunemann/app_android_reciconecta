@@ -67,4 +67,19 @@
     <string name="best_rated">Mais bem avaliado</string>
     <string name="items_count_format">%1$d itens disponíveis</string>
     <string name="distance_format">%1$.1f km</string>
+
+    <!-- Perfil Screen -->
+    <string name="profile_cooperative_subtitle">Cooperativa Verde Futuro</string>
+    <string name="profile_reviews_count_format">%1$d avaliações</string>
+    <string name="stat_collections">Coletas</string>
+    <string name="stat_weight">Kg coletados</string>
+    <string name="stat_since">Desde</string>
+    <string name="label_service_area">Área de Atuação</string>
+    <string name="label_materials_accepted">Materiais Aceitos</string>
+    <string name="label_recent_reviews">Avaliações Recentes</string>
+    <string name="tag_glass">Vidro</string>
+    <string name="tag_electronics">Eletrônico</string>
+    <string name="tag_metal">Metal</string>
+    <string name="review_time_days">2 dias atrás</string>
+    <string name="review_time_weeks">1 semana atrás</string>
 </resources>

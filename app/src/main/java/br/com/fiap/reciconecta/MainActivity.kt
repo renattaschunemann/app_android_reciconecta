@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
+import br.com.fiap.reciconecta.ui.screens.PerfilScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -12,10 +13,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ReciconectaTheme {
-
-                }
+                PerfilScreen()
             }
         }
     }
+}
 
 
