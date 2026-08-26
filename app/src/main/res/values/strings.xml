@@ -82,4 +82,17 @@
     <string name="tag_metal">Metal</string>
     <string name="review_time_days">2 dias atrás</string>
     <string name="review_time_weeks">1 semana atrás</string>
+
+    <!-- Impact Screen -->
+    <string name="impact_title">Meu Impacto</string>
+    <string name="impact_subtitle">Últimos 6 meses</string>
+    <string name="stat_recycled">Reciclado</string>
+    <string name="stat_co2">CO₂ evitado</string>
+    <string name="stat_income">Renda gerada</string>
+    <string name="chart_title">Materiais reciclados (kg)</string>
+    <string name="chart_year">2025</string>
+    <string name="section_by_material">Por tipo de material</string>
+    <string name="material_plastic">Plástico (PET)</string>
+    <string name="material_paper">Papel / Papelão</string>
+    <string name="action_recycle_now">Reciclar Agora</string>
 </resources>
