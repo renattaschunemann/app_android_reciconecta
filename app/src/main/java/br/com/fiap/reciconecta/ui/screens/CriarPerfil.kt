@@ -16,7 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -26,7 +26,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.fiap.reciconecta.R
-import androidx.compose.ui.res.stringResource
 import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,9 +39,7 @@ fun CriarPerfilScreen(
     var telefone by remember { mutableStateOf("") }
     var cpf by remember { mutableStateOf("") }
     var bairroCep by remember { mutableStateOf("") }
-
     val scrollState = rememberScrollState()
-
     Scaffold(
         topBar = {
             Column(
@@ -56,7 +53,6 @@ fun CriarPerfilScreen(
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Circular Outlined Back Button
                     Box(
                         modifier = Modifier
                             .size(40.dp)
@@ -71,10 +67,7 @@ fun CriarPerfilScreen(
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
-
                     Spacer(modifier = Modifier.width(16.dp))
-
-                    // Title & Subtitle
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
@@ -90,8 +83,6 @@ fun CriarPerfilScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-
-                    // Step Badge
                     Box(
                         modifier = Modifier
                             .clip(CircleShape)
@@ -106,8 +97,6 @@ fun CriarPerfilScreen(
                         )
                     }
                 }
-
-                // Thick primary color divider
                 HorizontalDivider(
                     thickness = 4.dp,
                     color = MaterialTheme.colorScheme.primary,
@@ -116,7 +105,7 @@ fun CriarPerfilScreen(
             }
         },
         bottomBar = {
-            // Confirm/Create Profile Button Container
+            // Apenas o botão de submit do formulário
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 tonalElevation = 2.dp,
@@ -170,14 +159,11 @@ fun CriarPerfilScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Avatar Selector Box
             Spacer(modifier = Modifier.height(8.dp))
             Box(
-                modifier = Modifier
-                    .size(110.dp),
+                modifier = Modifier.size(110.dp),
                 contentAlignment = Alignment.BottomEnd
             ) {
-                // Main Rounded Avatar container
                 Box(
                     modifier = Modifier
                         .size(100.dp)
@@ -187,20 +173,17 @@ fun CriarPerfilScreen(
                         .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
-                    // Boy Face Emoji / Avatar illustration placeholder
                     Text(
                         text = "👦",
                         fontSize = 48.sp
                     )
                 }
-
-                // Small floating camera button
                 Box(
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primary)
-                        .clickable { /* Action to change avatar */ },
+                        .clickable { },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -211,64 +194,48 @@ fun CriarPerfilScreen(
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(12.dp))
-
             Text(
                 text = stringResource(R.string.avatar_change_instruction),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-
             Spacer(modifier = Modifier.height(24.dp))
-
-            // Form Fields
             FormLabel(text = stringResource(R.string.label_full_name))
             FormTextField(
                 value = nomeCompleto,
                 onValueChange = { nomeCompleto = it },
                 placeholder = stringResource(R.string.placeholder_full_name)
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
             FormLabel(text = stringResource(R.string.label_email))
             FormTextField(
                 value = email,
                 onValueChange = { email = it },
                 placeholder = stringResource(R.string.placeholder_email)
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
             FormLabel(text = stringResource(R.string.label_phone))
             FormTextField(
                 value = telefone,
                 onValueChange = { telefone = it },
                 placeholder = stringResource(R.string.placeholder_phone)
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
             FormLabel(text = stringResource(R.string.label_cpf))
             FormTextField(
                 value = cpf,
                 onValueChange = { cpf = it },
                 placeholder = stringResource(R.string.placeholder_cpf)
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
             FormLabel(text = stringResource(R.string.label_neighborhood_cep))
             FormTextField(
                 value = bairroCep,
                 onValueChange = { bairroCep = it },
                 placeholder = stringResource(R.string.placeholder_neighborhood_cep)
             )
-
             Spacer(modifier = Modifier.height(24.dp))
-
-            // Terms of Use and Privacy Policy Consent
             val consentText = buildAnnotatedString {
                 append(stringResource(R.string.create_profile_consent_part1))
                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
@@ -280,7 +247,6 @@ fun CriarPerfilScreen(
                 }
                 append(".")
             }
-
             Text(
                 text = consentText,
                 style = MaterialTheme.typography.bodyMedium,
@@ -293,7 +259,6 @@ fun CriarPerfilScreen(
         }
     }
 }
-
 @Composable
 fun FormLabel(text: String) {
     val annotatedString = buildAnnotatedString {
@@ -305,7 +270,6 @@ fun FormLabel(text: String) {
             }
         }
     }
-
     Text(
         text = annotatedString,
         style = MaterialTheme.typography.labelLarge,
@@ -316,7 +280,6 @@ fun FormLabel(text: String) {
             .padding(bottom = 6.dp)
     )
 }
-
 @Composable
 fun FormTextField(
     value: String,
@@ -345,7 +308,6 @@ fun FormTextField(
         singleLine = true
     )
 }
-
 @Preview(showBackground = true)
 @Composable
 private fun CriarPerfilScreenPreview() {

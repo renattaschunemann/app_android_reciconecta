@@ -2,7 +2,6 @@ package br.com.fiap.reciconecta.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -10,12 +9,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Air
-import androidx.compose.material.icons.filled.Autorenew
 import androidx.compose.material.icons.filled.Eco
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MonetizationOn
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Recycling
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,7 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.fiap.reciconecta.R
-import br.com.fiap.reciconecta.ui.theme.OrangeIconColor
+import br.com.fiap.reciconecta.ui.components.AppBottomBar
 import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,84 +38,10 @@ fun ImpactoScreen(
 
     Scaffold(
         bottomBar = {
-            // Stack the Orange Recycle Button and Bottom Navigation Bar
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-            ) {
-                // "Reciclar Agora" Button Container
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 6.dp)
-                ) {
-                    Button(
-                        onClick = onRecycleClick,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = orangeBrandColor,
-                            contentColor = Color.White
-                        ),
-                        shape = MaterialTheme.shapes.medium
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Recycling,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = stringResource(R.string.action_recycle_now),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-
-                // Persistent Navigation Bar
-                Surface(
-                    tonalElevation = 8.dp,
-                    shadowElevation = 16.dp,
-                    color = Color.White,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .navigationBarsPadding()
-                            .padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceAround,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        BottomNavItem(
-                            icon = Icons.Default.Home,
-                            label = stringResource(R.string.nav_home),
-                            isSelected = true,
-                            onClick = { onNavigate("inicio") }
-                        )
-                        BottomNavItem(
-                            icon = Icons.Default.Autorenew,
-                            label = stringResource(R.string.nav_collections),
-                            isSelected = false,
-                            onClick = { onNavigate("coletas") }
-                        )
-                        BottomNavItem(
-                            icon = Icons.Default.Person,
-                            label = stringResource(R.string.nav_profile),
-                            isSelected = false,
-                            onClick = { onNavigate("perfil") }
-                        )
-                    }
-                }
-            }
+            AppBottomBar(
+                currentRoute = "inicio",
+                onNavigate = onNavigate
+            )
         }
     ) { innerPadding ->
         Column(
@@ -131,7 +52,6 @@ fun ImpactoScreen(
                 .verticalScroll(scrollState)
                 .padding(24.dp)
         ) {
-            // Header Section
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = stringResource(R.string.impact_title),
@@ -147,12 +67,10 @@ fun ImpactoScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 1. Stats row (Leaf, Wind/Air, Dollar)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Card 1: Recycled
                 StatCard(
                     modifier = Modifier.weight(1f),
                     value = "104",
@@ -163,7 +81,6 @@ fun ImpactoScreen(
                     iconBg = Color(0xFFD8F3E3)
                 )
 
-                // Card 2: CO2 Avoided
                 StatCard(
                     modifier = Modifier.weight(1f),
                     value = "38",
@@ -174,7 +91,6 @@ fun ImpactoScreen(
                     iconBg = Color(0xFFDBEAFE)
                 )
 
-                // Card 3: Income Generated
                 StatCard(
                     modifier = Modifier.weight(1f),
                     value = "R$290",
@@ -188,7 +104,6 @@ fun ImpactoScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 2. Bar Chart Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.large,
@@ -229,13 +144,11 @@ fun ImpactoScreen(
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    // Bar Chart Visualization
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(130.dp)
                     ) {
-                        // Background dashed guidelines
                         Column(
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.SpaceBetween
@@ -250,7 +163,6 @@ fun ImpactoScreen(
                             }
                         }
 
-                        // Chart bars row
                         Row(
                             modifier = Modifier.fillMaxSize(),
                             horizontalArrangement = Arrangement.SpaceAround,
@@ -269,7 +181,6 @@ fun ImpactoScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // 3. Distribution By Material Section
             Text(
                 text = stringResource(R.string.section_by_material),
                 style = MaterialTheme.typography.titleMedium,
@@ -279,7 +190,6 @@ fun ImpactoScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Progress Rows
             MaterialProgressItem(
                 name = stringResource(R.string.material_plastic),
                 weight = 71,
@@ -305,7 +215,7 @@ fun ImpactoScreen(
                 progress = 0.11f
             )
 
-            Spacer(modifier = Modifier.height(40.dp)) // Espaço para não sobrepor o botão ao rolar
+            Spacer(modifier = Modifier.height(40.dp))
         }
     }
 }
@@ -334,7 +244,6 @@ private fun StatCard(
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.Start
         ) {
-            // Icon Badge
             Box(
                 modifier = Modifier
                     .size(36.dp)
@@ -350,7 +259,6 @@ private fun StatCard(
                 )
             }
 
-            // Value & labels
             Column {
                 Text(
                     text = value,
@@ -442,38 +350,6 @@ private fun MaterialProgressItem(
                 .clip(CircleShape),
             color = color,
             trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-        )
-    }
-}
-
-@Composable
-private fun BottomNavItem(
-    icon: ImageVector,
-    label: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    val contentColor = if (isSelected) Color(0xFF1B4332) else Color(0xFF8F9A93)
-
-    Column(
-        modifier = Modifier
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = label,
-            tint = contentColor,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = label,
-            fontSize = 11.sp,
-            color = contentColor,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
         )
     }
 }

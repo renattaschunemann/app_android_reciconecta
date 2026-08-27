@@ -6,11 +6,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Recycling
 import androidx.compose.material3.Icon
@@ -20,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -28,25 +27,23 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.withStyle
 import br.com.fiap.reciconecta.R
-import br.com.fiap.reciconecta.ui.theme.ChartAmber
 import br.com.fiap.reciconecta.ui.theme.OrangeCardBackground
 import br.com.fiap.reciconecta.ui.theme.OrangeCardBorder
-import br.com.fiap.reciconecta.ui.theme.OrangeIconColor
 import br.com.fiap.reciconecta.ui.theme.OrangeIconBackground
+import br.com.fiap.reciconecta.ui.theme.OrangeIconColor
 import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
-import androidx.compose.ui.graphics.Color
-
 
 @Composable
-fun InitialScreen(modifier: Modifier = Modifier) {
-    // State to track which option is selected (1 = Pessoa Física, 2 = Empresa, 3 = Catador/Cooperativa)
+fun InitialScreen(
+    modifier: Modifier = Modifier,
+    onNavigateToCreateProfile: () -> Unit = {}
+) {
     var selectedOption by remember { mutableIntStateOf(3) }
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -55,7 +52,6 @@ fun InitialScreen(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // Top Section: Logo Card
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth()
@@ -76,9 +72,7 @@ fun InitialScreen(modifier: Modifier = Modifier) {
                     contentScale = ContentScale.Fit
                 )
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Text(
                 text = stringResource(R.string.onboarding_subtitle),
                 style = MaterialTheme.typography.bodyLarge,
@@ -86,8 +80,6 @@ fun InitialScreen(modifier: Modifier = Modifier) {
                 textAlign = TextAlign.Center
             )
         }
-
-        // Middle Section: Selection Options
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -98,27 +90,28 @@ fun InitialScreen(modifier: Modifier = Modifier) {
                 letterSpacing = 1.2.sp,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
-
             OptionCard(
                 title = stringResource(R.string.profile_option_individual),
                 description = stringResource(R.string.profile_option_individual_desc),
                 icon = Icons.Default.Person,
                 isSelected = selectedOption == 1,
-                onClick = { selectedOption = 1 }
+                onClick = {
+                    selectedOption = 1
+                    onNavigateToCreateProfile()
+                }
             )
-
             Spacer(modifier = Modifier.height(12.dp))
-
             OptionCard(
                 title = stringResource(R.string.profile_option_company),
                 description = stringResource(R.string.profile_option_company_desc),
                 icon = Icons.Default.Home,
                 isSelected = selectedOption == 2,
-                onClick = { selectedOption = 2 }
+                onClick = {
+                    selectedOption = 2
+                    onNavigateToCreateProfile()
+                }
             )
-
             Spacer(modifier = Modifier.height(12.dp))
-
             OptionCard(
                 title = stringResource(R.string.profile_option_collector),
                 description = stringResource(R.string.profile_option_collector_desc),
@@ -128,18 +121,18 @@ fun InitialScreen(modifier: Modifier = Modifier) {
                 selectedCardBorderColor = OrangeCardBorder,
                 selectedIconColor = OrangeIconColor,
                 selectedIconBgColor = OrangeIconBackground,
-                onClick = { selectedOption = 3 }
+                onClick = {
+                    selectedOption = 3
+                    onNavigateToCreateProfile()
+                }
             )
         }
-
-        // Bottom Section: Terms of Use
         val termsText = buildAnnotatedString {
             append(stringResource(R.string.onboarding_terms_consent))
             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
                 append(stringResource(R.string.terms_of_use))
             }
         }
-
         Text(
             text = termsText,
             fontSize = 12.sp,
@@ -148,11 +141,9 @@ fun InitialScreen(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 8.dp)
-                .clickable { /* Action for Terms of Use */ }
         )
     }
 }
-
 @Composable
 fun OptionCard(
     title: String,
@@ -165,7 +156,6 @@ fun OptionCard(
     selectedIconBgColor: Color? = null,
     onClick: () -> Unit
 ) {
-    // Style configurations depending on state (selected vs unselected)
     val cardBackground = if (isSelected) selectedCardBgColor else MaterialTheme.colorScheme.surface
     val cardBorderColor = if (isSelected) selectedCardBorderColor else MaterialTheme.colorScheme.outline
     val textColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
@@ -181,7 +171,6 @@ fun OptionCard(
     } else {
         MaterialTheme.colorScheme.onSurfaceVariant
     }
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -196,7 +185,6 @@ fun OptionCard(
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Left Icon in a circle
         Box(
             modifier = Modifier
                 .size(48.dp)
@@ -214,7 +202,6 @@ fun OptionCard(
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // Center Texts
         Column(
             modifier = Modifier.weight(1f)
         ) {
@@ -231,7 +218,6 @@ fun OptionCard(
             )
         }
 
-        // Right Arrow Icon
         Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
             contentDescription = "Arrow right",

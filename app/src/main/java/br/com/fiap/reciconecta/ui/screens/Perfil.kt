@@ -2,7 +2,6 @@ package br.com.fiap.reciconecta.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -16,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -23,8 +23,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.fiap.reciconecta.R
+import br.com.fiap.reciconecta.ui.components.AppBottomBar
 import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
-
+import androidx.compose.material.icons.filled.BarChart
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PerfilScreen(
@@ -34,50 +35,19 @@ fun PerfilScreen(
 
     Scaffold(
         bottomBar = {
-            Surface(
-                tonalElevation = 8.dp,
-                shadowElevation = 16.dp,
-                color = Color.White,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    BottomNavItem(
-                        icon = Icons.Default.Home,
-                        label = stringResource(R.string.nav_home),
-                        isSelected = false,
-                        onClick = { onNavigate("inicio") }
-                    )
-                    BottomNavItem(
-                        icon = Icons.Default.Autorenew,
-                        label = stringResource(R.string.nav_collections),
-                        isSelected = false,
-                        onClick = { onNavigate("coletas") }
-                    )
-                    BottomNavItem(
-                        icon = Icons.Default.Person,
-                        label = stringResource(R.string.nav_profile),
-                        isSelected = true,
-                        onClick = { onNavigate("perfil") }
-                    )
-                }
-            }
+            AppBottomBar(
+                currentRoute = "perfil",
+                onNavigate = onNavigate
+            )
         }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(Color(0xFFF7F9F8)) // Subtle light grey background for details section
+                .background(Color(0xFFF7F9F8))
                 .verticalScroll(scrollState)
         ) {
-            // Profile Header Summary Card (White background)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -85,7 +55,6 @@ fun PerfilScreen(
                     .padding(top = 32.dp, bottom = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Avatar Box
                 Box(
                     modifier = Modifier.size(110.dp),
                     contentAlignment = Alignment.BottomEnd
@@ -104,7 +73,6 @@ fun PerfilScreen(
                         )
                     }
 
-                    // Verification Checkmark Badge
                     Box(
                         modifier = Modifier
                             .size(28.dp)
@@ -124,7 +92,6 @@ fun PerfilScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Name & Subtitle
                 Text(
                     text = "Carlos Eduardo Silva",
                     style = MaterialTheme.typography.titleLarge,
@@ -140,7 +107,6 @@ fun PerfilScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Stars rating & reviews count
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -175,7 +141,6 @@ fun PerfilScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Stats Row
                 Row(
                     modifier = Modifier.fillMaxWidth(0.9f),
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -184,15 +149,48 @@ fun PerfilScreen(
                     ProfileStatItem(value = "1.342", label = stringResource(R.string.stat_weight))
                     ProfileStatItem(value = "2021", label = stringResource(R.string.stat_since))
                 }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                //BOTÃO: Redireciona para a tela de Impacto
+                OutlinedButton(
+                    onClick = { onNavigate("inicio") }, // "inicio" é a rota da Impacto.kt
+                    shape = MaterialTheme.shapes.medium,
+                    border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                        width = 1.dp,
+                        brush = SolidColor(MaterialTheme.colorScheme.primary)
+                    ),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.secondary
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .height(44.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.BarChart, // Ou Icons.Default.Eco
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Ver Meu Impacto Ambiental",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
 
-            // Profile Details Section (Light grey background)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(24.dp)
             ) {
-                // 1. Service Area
                 Text(
                     text = stringResource(R.string.label_service_area),
                     style = MaterialTheme.typography.titleMedium,
@@ -214,7 +212,6 @@ fun PerfilScreen(
 
                 Spacer(modifier = Modifier.height(28.dp))
 
-                // 2. Materials Accepted
                 Text(
                     text = stringResource(R.string.label_materials_accepted),
                     style = MaterialTheme.typography.titleMedium,
@@ -236,7 +233,6 @@ fun PerfilScreen(
 
                 Spacer(modifier = Modifier.height(28.dp))
 
-                // 3. Recent Reviews
                 Text(
                     text = stringResource(R.string.label_recent_reviews),
                     style = MaterialTheme.typography.titleMedium,
@@ -260,7 +256,7 @@ fun PerfilScreen(
                     rating = 5,
                     comment = "Excelente serviço, recomendo a todos."
                 )
-                Spacer(modifier = Modifier.height(32.dp)) // Espaço extra no final para rolagem confortável
+                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }
@@ -398,7 +394,6 @@ private fun ReviewCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Rating Stars
             Row(verticalAlignment = Alignment.CenterVertically) {
                 for (i in 1..5) {
                     Icon(
@@ -418,38 +413,6 @@ private fun ReviewCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-    }
-}
-
-@Composable
-private fun BottomNavItem(
-    icon: ImageVector,
-    label: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    val contentColor = if (isSelected) Color(0xFF1B4332) else Color(0xFF8F9A93)
-
-    Column(
-        modifier = Modifier
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = label,
-            tint = contentColor,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = label,
-            fontSize = 11.sp,
-            color = contentColor,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-        )
     }
 }
 

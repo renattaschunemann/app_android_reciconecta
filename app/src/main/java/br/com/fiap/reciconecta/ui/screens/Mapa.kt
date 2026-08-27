@@ -9,11 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Autorenew
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Recycling
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.*
@@ -22,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -30,9 +25,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.fiap.reciconecta.R
+import br.com.fiap.reciconecta.ui.components.AppBottomBar
 import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
 
-// Data model representing a collector
 data class Collector(
     val id: Int,
     val name: String,
@@ -62,7 +57,7 @@ fun MapaScreen(
             itemsAvailable = 5,
             price = 12,
             avatar = "👦",
-            avatarBg = Color(0xFFCDEBD9), // Soft Green
+            avatarBg = Color(0xFFCDEBD9),
             tags = listOf("PET" to Color(0xFFD0E1FD), "Vidro" to Color(0xFFCDEBD9))
         ),
         Collector(
@@ -73,7 +68,7 @@ fun MapaScreen(
             itemsAvailable = 3,
             price = 28,
             avatar = "👧",
-            avatarBg = Color(0xFFD6E4FD), // Soft Blue
+            avatarBg = Color(0xFFD6E4FD),
             tags = listOf("Metal" to Color(0xFFFEF0CD), "Alumínio" to Color(0xFFFEF0CD))
         ),
         Collector(
@@ -84,7 +79,7 @@ fun MapaScreen(
             itemsAvailable = 8,
             price = 8,
             avatar = "🏢",
-            avatarBg = Color(0xFFE8E1FD), // Soft Purple
+            avatarBg = Color(0xFFE8E1FD),
             tags = listOf("Papel" to Color(0xFFE8E1FD), "Papelão" to Color(0xFFE8E1FD)),
             isBestRated = true
         )
@@ -118,7 +113,6 @@ fun MapaScreen(
                             overflow = TextOverflow.Ellipsis
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        // "5 disponíveis" Badge
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
@@ -137,7 +131,6 @@ fun MapaScreen(
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    // Filter Button
                     OutlinedButton(
                         onClick = onFilterClick,
                         shape = MaterialTheme.shapes.medium,
@@ -166,40 +159,10 @@ fun MapaScreen(
             }
         },
         bottomBar = {
-            Surface(
-                tonalElevation = 8.dp,
-                shadowElevation = 16.dp,
-                color = Color.White,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    BottomNavItem(
-                        icon = Icons.Default.Home,
-                        label = stringResource(R.string.nav_home),
-                        isSelected = false,
-                        onClick = { onNavigate("inicio") }
-                    )
-                    BottomNavItem(
-                        icon = Icons.Default.Recycling,
-                        label = stringResource(R.string.nav_collections),
-                        isSelected = true,
-                        onClick = { onNavigate("coletas") }
-                    )
-                    BottomNavItem(
-                        icon = Icons.Default.Person,
-                        label = stringResource(R.string.nav_profile),
-                        isSelected = false,
-                        onClick = { onNavigate("perfil") }
-                    )
-                }
-            }
+            AppBottomBar(
+                currentRoute = "coletas",
+                onNavigate = onNavigate
+            )
         }
     ) { innerPadding ->
         Column(
@@ -208,14 +171,12 @@ fun MapaScreen(
                 .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            // Simulated Map Section
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(240.dp)
-                    .background(Color(0xFFE5EDE9)) // Map background
+                    .background(Color(0xFFE5EDE9))
             ) {
-                // Draw simulated map grid blocks
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.SpaceEvenly
@@ -238,7 +199,6 @@ fun MapaScreen(
                     }
                 }
 
-                // Map Pin: User Location
                 Box(
                     modifier = Modifier
                         .size(24.dp)
@@ -256,26 +216,21 @@ fun MapaScreen(
                     )
                 }
 
-                // Map Pins: Nearby Collectors
-                // Carlos Silva pin
                 MapPinBubble(
                     text = "PET",
                     price = "R$ 15",
                     modifier = Modifier.offset(x = 60.dp, y = 20.dp)
                 )
-                // Ana Souza pin
                 MapPinBubble(
                     text = "Vidr",
                     price = "R$ 12",
                     modifier = Modifier.offset(x = 40.dp, y = 90.dp)
                 )
-                // Coop. Verde pin
                 MapPinBubble(
                     text = "Pape",
                     price = "R$ 8",
                     modifier = Modifier.offset(x = 130.dp, y = 60.dp)
                 )
-                // Other pins
                 MapPinBubble(
                     text = "Mota",
                     price = "",
@@ -288,7 +243,6 @@ fun MapaScreen(
                 )
             }
 
-            // Scrollable List Section
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -404,7 +358,6 @@ fun CollectorCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Left Avatar Block with Rating Badge underneath
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
@@ -424,7 +377,6 @@ fun CollectorCard(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Under avatar Rating badge
                 Box(
                     modifier = Modifier
                         .clip(CircleShape)
@@ -454,7 +406,6 @@ fun CollectorCard(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Center details
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -473,7 +424,6 @@ fun CollectorCard(
                         modifier = Modifier.weight(1f)
                     )
 
-                    // Price Badge
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
@@ -508,7 +458,6 @@ fun CollectorCard(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // Rating Stars Row
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -541,7 +490,6 @@ fun CollectorCard(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // Distance and items count
                 val distanceStr = stringResource(R.string.distance_format, collector.distance)
                 val itemsStr = stringResource(R.string.items_count_format, collector.itemsAvailable)
 
@@ -553,7 +501,6 @@ fun CollectorCard(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Tag elements
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -575,38 +522,6 @@ fun CollectorCard(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun BottomNavItem(
-    icon: ImageVector,
-    label: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    val contentColor = if (isSelected) Color(0xFF1B4332) else Color(0xFF8F9A93)
-
-    Column(
-        modifier = Modifier
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = label,
-            tint = contentColor,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = label,
-            fontSize = 11.sp,
-            color = contentColor,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-        )
     }
 }
 

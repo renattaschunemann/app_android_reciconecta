@@ -7,9 +7,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Autorenew
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.QrCodeScanner
@@ -21,13 +18,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.sp
 import br.com.fiap.reciconecta.R
-import androidx.compose.ui.res.stringResource
+import br.com.fiap.reciconecta.ui.components.AppBottomBar
 import br.com.fiap.reciconecta.ui.theme.DarkAccent
 import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
 import br.com.fiap.reciconecta.ui.theme.ScannerBackground
@@ -42,10 +39,8 @@ fun ScannerScreen(
     onCaptureClick: () -> Unit = {},
     onNavigate: (String) -> Unit = {}
 ) {
-
     Scaffold(
         topBar = {
-            // Semi-transparent or solid dark header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -65,7 +60,6 @@ fun ScannerScreen(
                         color = Color.White
                     )
 
-                    // QR Code top right button
                     Box(
                         modifier = Modifier
                             .size(48.dp)
@@ -85,45 +79,12 @@ fun ScannerScreen(
             }
         },
         bottomBar = {
-            // Persistent Navigation Bar
-            Surface(
-                tonalElevation = 8.dp,
-                shadowElevation = 16.dp,
-                color = Color.White,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    BottomNavItem(
-                        icon = Icons.Default.Home,
-                        label = stringResource(R.string.nav_home),
-                        isSelected = false,
-                        onClick = { onNavigate("inicio") }
-                    )
-                    BottomNavItem(
-                        icon = Icons.Default.Autorenew,
-                        label = stringResource(R.string.nav_collections),
-                        isSelected = true,
-                        hasNotification = true,
-                        onClick = { onNavigate("coletas") }
-                    )
-                    BottomNavItem(
-                        icon = Icons.Default.Person,
-                        label = stringResource(R.string.nav_profile),
-                        isSelected = false,
-                        onClick = { onNavigate("perfil") }
-                    )
-                }
-            }
+            AppBottomBar(
+                currentRoute = "coletas",
+                onNavigate = onNavigate
+            )
         }
     ) { innerPadding ->
-        // Main camera viewfinder viewport & controls
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -132,7 +93,6 @@ fun ScannerScreen(
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Viewfinder and Info text
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
@@ -144,7 +104,6 @@ fun ScannerScreen(
                 ) {
                     ScannerFrameCorners(color = DarkAccent)
 
-                    // Laser simulator line
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(0.9f)
@@ -170,7 +129,6 @@ fun ScannerScreen(
                 )
             }
 
-            // Bottom camera actions (Capture, Gallery, Code)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -186,7 +144,6 @@ fun ScannerScreen(
                     onClick = onCodeClick
                 )
 
-                // Shutter trigger button
                 Box(
                     modifier = Modifier
                         .size(80.dp)
@@ -216,7 +173,6 @@ fun ScannerScreen(
         }
     }
 }
-
 
 @Composable
 private fun ScannerFrameCorners(color: Color) {
@@ -284,50 +240,6 @@ private fun BottomActionButton(
             fontSize = 12.sp,
             color = tintColor,
             fontWeight = FontWeight.SemiBold
-        )
-    }
-}
-
-@Composable
-private fun BottomNavItem(
-    icon: ImageVector,
-    label: String,
-    isSelected: Boolean,
-    hasNotification: Boolean = false,
-    onClick: () -> Unit
-) {
-    val contentColor = if (isSelected) Color(0xFF1B4332) else Color(0xFF8F9A93)
-
-    Column(
-        modifier = Modifier
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Box(contentAlignment = Alignment.TopEnd) {
-            Icon(
-                imageVector = icon,
-                contentDescription = label,
-                tint = contentColor,
-                modifier = Modifier.size(24.dp)
-            )
-            if (hasNotification) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFE47B3E))
-                        .border(1.dp, Color.White, CircleShape)
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = label,
-            fontSize = 11.sp,
-            color = contentColor,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
         )
     }
 }
