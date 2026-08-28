@@ -26,6 +26,14 @@ import androidx.compose.ui.unit.sp
 import br.com.fiap.reciconecta.R
 import br.com.fiap.reciconecta.ui.components.AppBottomBar
 import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import br.com.fiap.reciconecta.data.local.datastore.RecyclingPreferences
+import br.com.fiap.reciconecta.data.repository.RecyclingRepositoryImpl
+import br.com.fiap.reciconecta.domain.model.RecyclingStats
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,6 +43,19 @@ fun ImpactoScreen(
 ) {
     val scrollState = rememberScrollState()
     val orangeBrandColor = Color(0xFFEA580C)
+    
+    val context = LocalContext.current
+    val preferences = remember { RecyclingPreferences(context) }
+    val recyclingRepository = remember { RecyclingRepositoryImpl(preferences) }
+    val stats by recyclingRepository.recyclingStats.collectAsState(initial = RecyclingStats(71f, 22f, 11f))
+
+    val totalWeight = stats.plasticKg + stats.paperKg + stats.metalKg
+    val co2Avoided = totalWeight * 0.36f
+    val income = totalWeight * 2.80f
+
+    val formattedWeight = String.format(Locale.getDefault(), "%.3f", totalWeight)
+    val formattedCo2 = String.format(Locale.getDefault(), "%.3f", co2Avoided)
+    val formattedIncome = String.format(Locale.getDefault(), "R$ %.2f", income)
 
     Scaffold(
         bottomBar = {
@@ -73,7 +94,7 @@ fun ImpactoScreen(
             ) {
                 StatCard(
                     modifier = Modifier.weight(1f),
-                    value = "104",
+                    value = formattedWeight,
                     labelUnit = "kg",
                     labelDesc = stringResource(R.string.stat_recycled),
                     icon = Icons.Default.Eco,
@@ -83,7 +104,7 @@ fun ImpactoScreen(
 
                 StatCard(
                     modifier = Modifier.weight(1f),
-                    value = "38",
+                    value = formattedCo2,
                     labelUnit = "kg",
                     labelDesc = stringResource(R.string.stat_co2),
                     icon = Icons.Default.Air,
@@ -93,7 +114,7 @@ fun ImpactoScreen(
 
                 StatCard(
                     modifier = Modifier.weight(1f),
-                    value = "R$290",
+                    value = formattedIncome,
                     labelUnit = "",
                     labelDesc = stringResource(R.string.stat_income),
                     icon = Icons.Default.MonetizationOn,
@@ -190,29 +211,31 @@ fun ImpactoScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            val maxWeight = if (totalWeight > 0f) totalWeight else 1f
+
             MaterialProgressItem(
                 name = stringResource(R.string.material_plastic),
-                weight = 71,
+                weight = stats.plasticKg,
                 color = orangeBrandColor,
-                progress = 0.71f
+                progress = stats.plasticKg / maxWeight
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             MaterialProgressItem(
                 name = stringResource(R.string.material_paper),
-                weight = 22,
+                weight = stats.paperKg,
                 color = MaterialTheme.colorScheme.primary,
-                progress = 0.22f
+                progress = stats.paperKg / maxWeight
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             MaterialProgressItem(
                 name = stringResource(R.string.tag_metal),
-                weight = 11,
+                weight = stats.metalKg,
                 color = Color(0xFF52B788),
-                progress = 0.11f
+                progress = stats.metalKg / maxWeight
             )
 
             Spacer(modifier = Modifier.height(40.dp))
@@ -316,7 +339,7 @@ private fun ChartBar(month: String, heightFraction: Float) {
 @Composable
 private fun MaterialProgressItem(
     name: String,
-    weight: Int,
+    weight: Float,
     color: Color,
     progress: Float
 ) {
@@ -334,8 +357,9 @@ private fun MaterialProgressItem(
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
+            val formattedW = String.format(Locale.getDefault(), "%.3f", weight)
             Text(
-                text = "$weight kg",
+                text = "$formattedW kg",
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 color = color

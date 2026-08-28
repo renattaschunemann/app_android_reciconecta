@@ -28,6 +28,11 @@ import androidx.compose.ui.unit.dp
 import br.com.fiap.reciconecta.R
 import br.com.fiap.reciconecta.ui.components.AppBottomBar
 import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import br.com.fiap.reciconecta.data.local.datastore.RecyclingPreferences
+import br.com.fiap.reciconecta.data.repository.RecyclingRepositoryImpl
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +48,11 @@ fun ColetaScreen(
 
     val scrollState = rememberScrollState()
     val orangeBrandColor = Color(0xFFE47B3E)
+    
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val preferences = remember { RecyclingPreferences(context) }
+    val recyclingRepository = remember { RecyclingRepositoryImpl(preferences) }
 
     Scaffold(
         bottomBar = {
@@ -56,7 +66,14 @@ fun ColetaScreen(
                             .padding(horizontal = 24.dp, vertical = 12.dp)
                     ) {
                         Button(
-                            onClick = onConfirmClick,
+                            onClick = {
+                                scope.launch {
+                                    // 3 PET = 0.150 kg de plástico
+                                    // 2 Papelão = 0.900 kg de papel
+                                    recyclingRepository.addMaterial(0.150f, 0.900f, 0f)
+                                    onConfirmClick()
+                                }
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(56.dp),

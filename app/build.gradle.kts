@@ -59,4 +59,6 @@ dependencies {
 
     //Recurso para capturar imagem de perfil
     implementation("io.coil-kt:coil-compose:2.6.0")
+
+    implementation(libs.androidx.datastore.preferences)
 }

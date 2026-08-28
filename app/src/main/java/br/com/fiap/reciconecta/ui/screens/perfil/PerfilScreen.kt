@@ -27,12 +27,23 @@ import br.com.fiap.reciconecta.ui.components.AppBottomBar
 import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
 import androidx.compose.material.icons.filled.BarChart
 
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import br.com.fiap.reciconecta.data.local.datastore.UserProfilePreferences
+import br.com.fiap.reciconecta.data.repository.UserRepositoryImpl
+
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PerfilScreen(
     onNavigate: (String) -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+    val preferences = remember { UserProfilePreferences(context) }
+    val userRepository = remember { UserRepositoryImpl(preferences) }
+    val userProfile by userRepository.userProfile.collectAsState(initial = null)
 
     Scaffold(
         bottomBar = {
@@ -94,14 +105,14 @@ fun PerfilScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Carlos Eduardo Silva",
+                    text = userProfile?.nome ?: "Carlos Eduardo Silva",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = stringResource(R.string.profile_cooperative_subtitle),
+                    text = userProfile?.email ?: stringResource(R.string.profile_cooperative_subtitle),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

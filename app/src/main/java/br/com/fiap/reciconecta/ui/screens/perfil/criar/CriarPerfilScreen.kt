@@ -50,6 +50,12 @@ import br.com.fiap.reciconecta.R
 import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
 import coil.compose.AsyncImage
 import java.io.File
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import br.com.fiap.reciconecta.domain.model.UserProfile
+import br.com.fiap.reciconecta.data.local.datastore.UserProfilePreferences
+import br.com.fiap.reciconecta.data.repository.UserRepositoryImpl
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,12 +66,10 @@ fun CriarPerfilScreen(
     val context = LocalContext.current
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
-
-    LaunchedEffect(Unit) {
-        delay(100)
-        focusRequester.requestFocus()
-        keyboardController?.show()
-    }
+    val scope = rememberCoroutineScope()
+    val preferences = remember { UserProfilePreferences(context) }
+    val userRepository = remember { UserRepositoryImpl(preferences) }
+    val savedProfile by userRepository.userProfile.collectAsState(initial = null)
 
     var nomeCompleto by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -78,6 +82,22 @@ fun CriarPerfilScreen(
     var telefoneError by remember { mutableStateOf<String?>(null) }
     var cpfError by remember { mutableStateOf<String?>(null) }
     var bairroCepError by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        delay(100)
+        focusRequester.requestFocus()
+        keyboardController?.show()
+    }
+
+    LaunchedEffect(savedProfile) {
+        savedProfile?.let { profile ->
+            nomeCompleto = profile.nome
+            email = profile.email
+            telefone = profile.telefone
+            cpf = profile.cpf
+            bairroCep = profile.cep
+        }
+    }
 
     // Estado unificado para a foto de perfil
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
@@ -242,113 +262,6 @@ fun CriarPerfilScreen(
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.fillMaxWidth()
                 )
-            }
-        },
-        bottomBar = {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                tonalElevation = 2.dp,
-                shadowElevation = 8.dp
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            var isValid = true
-
-                            // Validação Nome Completo
-                            if (nomeCompleto.trim().isEmpty()) {
-                                nomeError = "Nome completo não pode ser vazio"
-                                isValid = false
-                            } else if (nomeCompleto.trim().split(" ").size < 2) {
-                                nomeError = "Digite seu nome completo (Nome e Sobrenome)"
-                                isValid = false
-                            } else {
-                                nomeError = null
-                            }
-
-                            // Validação E-mail
-                            val emailTrimmed = email.trim()
-                            if (emailTrimmed.isEmpty()) {
-                                emailError = "E-mail não pode ser vazio"
-                                isValid = false
-                            } else if (!emailTrimmed.contains("@") || !emailTrimmed.contains(".com")) {
-                                emailError = "E-mail inválido (deve conter @ e .com)"
-                                isValid = false
-                            } else {
-                                emailError = null
-                            }
-
-                            // Validação Telefone
-                            val phoneDigits = telefone.filter { it.isDigit() }
-                            if (telefone.trim().isEmpty()) {
-                                telefoneError = "Telefone não pode ser vazio"
-                                isValid = false
-                            } else if (phoneDigits.length < 10 || phoneDigits.length > 11) {
-                                telefoneError = "Telefone inválido (deve conter o DDD e 10 ou 11 dígitos)"
-                                isValid = false
-                            } else {
-                                telefoneError = null
-                            }
-
-                            // Validação CPF
-                            val cpfDigits = cpf.filter { it.isDigit() }
-                            if (cpf.trim().isEmpty()) {
-                                cpfError = "CPF não pode ser vazio"
-                                isValid = false
-                            } else if (cpfDigits.length != 11) {
-                                cpfError = "CPF inválido (deve conter exatamente 11 dígitos)"
-                                isValid = false
-                            } else {
-                                cpfError = null
-                            }
-
-                            // Validação CEP
-                            val cepDigits = bairroCep.filter { it.isDigit() }
-                            if (bairroCep.trim().isEmpty()) {
-                                bairroCepError = "CEP não pode ser vazio"
-                                isValid = false
-                            } else if (cepDigits.length != 8) {
-                                bairroCepError = "CEP inválido (deve conter exatamente 8 números)"
-                                isValid = false
-                            } else {
-                                bairroCepError = null
-                            }
-
-                            if (isValid) {
-                                onCreateProfileClick(nomeCompleto, email, telefone, cpf, bairroCep)
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        ),
-                        shape = MaterialTheme.shapes.medium
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = stringResource(R.string.create_profile_title),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
             }
         }
     ) { innerPadding ->
@@ -527,6 +440,113 @@ fun CriarPerfilScreen(
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    var isValid = true
+
+                    // Validação Nome Completo
+                    if (nomeCompleto.trim().isEmpty()) {
+                        nomeError = "Nome completo não pode ser vazio"
+                        isValid = false
+                    } else if (nomeCompleto.trim().split(" ").size < 2) {
+                        nomeError = "Digite seu nome completo (Nome e Sobrenome)"
+                        isValid = false
+                    } else {
+                        nomeError = null
+                    }
+
+                    // Validação E-mail
+                    val emailTrimmed = email.trim()
+                    if (emailTrimmed.isEmpty()) {
+                        emailError = "E-mail não pode ser vazio"
+                        isValid = false
+                    } else if (!emailTrimmed.contains("@") || !emailTrimmed.contains(".com")) {
+                        emailError = "E-mail inválido (deve conter @ e .com)"
+                        isValid = false
+                    } else {
+                        emailError = null
+                    }
+
+                    // Validação Telefone
+                    val phoneDigits = telefone.filter { it.isDigit() }
+                    if (telefone.trim().isEmpty()) {
+                        telefoneError = "Telefone não pode ser vazio"
+                        isValid = false
+                    } else if (phoneDigits.length < 10 || phoneDigits.length > 11) {
+                        telefoneError = "Telefone inválido (deve conter o DDD e 10 ou 11 dígitos)"
+                        isValid = false
+                    } else {
+                        telefoneError = null
+                    }
+
+                    // Validação CPF
+                    val cpfDigits = cpf.filter { it.isDigit() }
+                    if (cpf.trim().isEmpty()) {
+                        cpfError = "CPF não pode ser vazio"
+                        isValid = false
+                    } else if (cpfDigits.length != 11) {
+                        cpfError = "CPF inválido (deve conter exatamente 11 dígitos)"
+                        isValid = false
+                    } else {
+                        cpfError = null
+                    }
+
+                    // Validação CEP
+                    val cepDigits = bairroCep.filter { it.isDigit() }
+                    if (bairroCep.trim().isEmpty()) {
+                        bairroCepError = "CEP não pode ser vazio"
+                        isValid = false
+                    } else if (cepDigits.length != 8) {
+                        bairroCepError = "CEP inválido (deve conter exatamente 8 números)"
+                        isValid = false
+                    } else {
+                        bairroCepError = null
+                    }
+
+                    if (isValid) {
+                        scope.launch {
+                            userRepository.saveProfile(
+                                UserProfile(
+                                    nome = nomeCompleto,
+                                    email = email,
+                                    telefone = telefone,
+                                    cpf = cpf,
+                                    cep = bairroCep
+                                )
+                            )
+                            onCreateProfileClick(nomeCompleto, email, telefone, cpf, bairroCep)
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.create_profile_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
     }
 }
