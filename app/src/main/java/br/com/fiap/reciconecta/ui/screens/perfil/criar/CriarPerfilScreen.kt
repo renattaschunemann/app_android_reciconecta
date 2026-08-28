@@ -456,10 +456,13 @@ fun CriarPerfilScreen(
             FormTextField(
                 value = telefone,
                 onValueChange = {
-                    telefone = it
-                    if (telefoneError != null) telefoneError = null
+                    val filtered = it.filter { char -> char.isDigit() }
+                    if (filtered.length <= 11) {
+                        telefone = filtered
+                        if (telefoneError != null) telefoneError = null
+                    }
                 },
-                placeholder = stringResource(R.string.placeholder_phone),
+                placeholder = "Ex.: 11999999999",
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
                 isError = telefoneError != null,
                 errorMessage = telefoneError
