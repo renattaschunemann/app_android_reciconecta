@@ -5,7 +5,13 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import br.com.fiap.reciconecta.ui.screens.*
+import br.com.fiap.reciconecta.ui.screens.onboarding.OnboardingScreen
+import br.com.fiap.reciconecta.ui.screens.perfil.criar.CriarPerfilScreen
+import br.com.fiap.reciconecta.ui.screens.perfil.PerfilScreen
+import br.com.fiap.reciconecta.ui.screens.impacto.ImpactoScreen
+import br.com.fiap.reciconecta.ui.screens.coleta.ColetaScreen
+import br.com.fiap.reciconecta.ui.screens.mapa.MapaScreen
+import br.com.fiap.reciconecta.ui.screens.scanner.ScannerScreen
 
 @Composable
 fun NavigationRoutes(
@@ -19,7 +25,7 @@ fun NavigationRoutes(
     ) {
         // Tela de Onboarding (Onboarding.kt)
         composable(ScreenRoutes.Onboarding.route) {
-            InitialScreen(
+            OnboardingScreen(
                 onNavigateToCreateProfile = {
                     navController.navigate(ScreenRoutes.CriarPerfil.route)
                 }
