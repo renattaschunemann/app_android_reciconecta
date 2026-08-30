@@ -214,7 +214,7 @@ fun PerfilScreen(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 OutlinedButton(
-                    onClick = { onNavigate("inicio") },
+                    onClick = { onNavigate(br.com.fiap.reciconecta.navigation.ScreenRoutes.Home.route) },
                     shape = MaterialTheme.shapes.medium,
                     border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
                         width = 1.dp,

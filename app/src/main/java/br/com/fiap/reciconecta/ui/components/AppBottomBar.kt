@@ -21,22 +21,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.fiap.reciconecta.R
+import br.com.fiap.reciconecta.navigation.ScreenRoutes
 
 @Composable
 fun AppBottomBar(
     currentRoute: String,
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier,
-    topContent: (@Composable () -> Unit)? = null // Permite passar um botão superior opcional (ex: Reciclar ou Confirmar)
+    topContent: (@Composable () -> Unit)? = null
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
     ) {
-        // Renderiza o botão superior se a tela enviar um (ex: ImpactoScreen ou ColetaScreen)
         topContent?.invoke()
-        // Barra cinza com os ícones de navegação
+
         Surface(
             tonalElevation = 8.dp,
             shadowElevation = 16.dp,
@@ -54,25 +54,27 @@ fun AppBottomBar(
                 BottomNavItem(
                     icon = Icons.Default.Home,
                     label = stringResource(R.string.nav_home),
-                    isSelected = currentRoute == "inicio",
-                    onClick = { onNavigate("inicio") }
+                    // Compara com a rota real da Home
+                    isSelected = currentRoute == ScreenRoutes.Home.route || currentRoute == "inicio",
+                    onClick = { onNavigate(ScreenRoutes.Home.route) }
                 )
                 BottomNavItem(
                     icon = Icons.Default.Recycling,
                     label = stringResource(R.string.nav_collections),
-                    isSelected = currentRoute == "coletas",
-                    onClick = { onNavigate("coletas") }
+                    isSelected = currentRoute == ScreenRoutes.Coletas.route || currentRoute == "coletas",
+                    onClick = { onNavigate(ScreenRoutes.Coletas.route) }
                 )
                 BottomNavItem(
                     icon = Icons.Default.Person,
                     label = stringResource(R.string.nav_profile),
-                    isSelected = currentRoute == "perfil",
-                    onClick = { onNavigate("perfil") }
+                    isSelected = currentRoute == ScreenRoutes.Perfil.route || currentRoute == "perfil",
+                    onClick = { onNavigate(ScreenRoutes.Perfil.route) }
                 )
             }
         }
     }
 }
+
 @Composable
 private fun BottomNavItem(
     icon: ImageVector,
