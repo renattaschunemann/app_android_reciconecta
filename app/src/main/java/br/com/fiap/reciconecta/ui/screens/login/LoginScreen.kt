@@ -77,7 +77,10 @@ fun LoginScreen(
     Scaffold(
         topBar = {
             Column(
-                modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .background(MaterialTheme.colorScheme.surface)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),

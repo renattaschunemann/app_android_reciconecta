@@ -203,7 +203,8 @@ fun MapaScreen(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
+                    .weight(1f)
+                    .navigationBarsPadding(),
                 color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 8.dp,
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
