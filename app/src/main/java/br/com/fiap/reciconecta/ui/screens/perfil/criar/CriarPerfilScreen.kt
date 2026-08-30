@@ -16,9 +16,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,6 +33,8 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -57,13 +60,15 @@ import kotlinx.coroutines.launch
 import br.com.fiap.reciconecta.domain.model.UserProfile
 import br.com.fiap.reciconecta.data.local.datastore.UserProfilePreferences
 import br.com.fiap.reciconecta.data.repository.UserRepositoryImpl
+import br.com.fiap.reciconecta.ui.components.ProfileBottomActionButtons
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CriarPerfilScreen(
+    isEditMode: Boolean = false,
     onBackClick: () -> Unit = {},
     onLoginClick: () -> Unit = {},
-    onCreateProfileClick: (nome: String, email: String, telefone: String, cpf: String, bairroCep: String) -> Unit = { _, _, _, _, _ -> }
+    onSaveProfileClick: (nome: String, email: String, telefone: String, cpf: String, bairroCep: String) -> Unit = { _, _, _, _, _ -> }
 ) {
     val context = LocalContext.current
     val focusRequester = remember { FocusRequester() }
@@ -79,11 +84,17 @@ fun CriarPerfilScreen(
     var cpf by remember { mutableStateOf("") }
     var bairroCep by remember { mutableStateOf("") }
 
+    // Novos campos de senha
+    var senha by remember { mutableStateOf("") }
+    var confirmarSenha by remember { mutableStateOf("") }
+
     var nomeError by remember { mutableStateOf<String?>(null) }
     var emailError by remember { mutableStateOf<String?>(null) }
     var telefoneError by remember { mutableStateOf<String?>(null) }
     var cpfError by remember { mutableStateOf<String?>(null) }
     var bairroCepError by remember { mutableStateOf<String?>(null) }
+    var senhaError by remember { mutableStateOf<String?>(null) }
+    var confirmarSenhaError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         delay(100)
@@ -101,14 +112,12 @@ fun CriarPerfilScreen(
         }
     }
 
-    // Estado unificado para a foto de perfil
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
     var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
     var showImagePickerDialog by remember { mutableStateOf(false) }
 
     val scrollState = rememberScrollState()
 
-    // 💡 Criação do arquivo na pasta de cache do app
     fun createImageUri(): Uri {
         val file = File.createTempFile(
             "profile_photo_${System.currentTimeMillis()}",
@@ -119,14 +128,10 @@ fun CriarPerfilScreen(
         return FileProvider.getUriForFile(context, authority, file)
     }
 
-    // Launcher para Galeria
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let { profileImageUri = it }
-    }
+    ) { uri: Uri? -> uri?.let { profileImageUri = it } }
 
-    // Launcher para Câmera
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success: Boolean ->
@@ -135,7 +140,6 @@ fun CriarPerfilScreen(
         }
     }
 
-    // Launcher para pedir permissão em tempo de execução
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
@@ -146,25 +150,15 @@ fun CriarPerfilScreen(
         }
     }
 
-    // Modal para escolha da origem da imagem
     if (showImagePickerDialog) {
         AlertDialog(
             onDismissRequest = { showImagePickerDialog = false },
-            title = {
-                Text(
-                    text = "Foto de Perfil",
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleMedium
-                )
-            },
-            text = {
-                Text("Escolha como deseja adicionar sua foto:")
-            },
+            title = { Text(text = "Foto de Perfil", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium) },
+            text = { Text("Escolha como deseja adicionar sua foto:") },
             confirmButton = {
                 TextButton(
                     onClick = {
                         showImagePickerDialog = false
-                        // Checa permissão antes de abrir a câmera
                         if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                             val uri = createImageUri()
                             tempCameraUri = uri
@@ -201,14 +195,10 @@ fun CriarPerfilScreen(
     Scaffold(
         topBar = {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
+                modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface)
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
@@ -228,11 +218,9 @@ fun CriarPerfilScreen(
 
                     Spacer(modifier = Modifier.width(16.dp))
 
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = stringResource(R.string.create_profile_title),
+                            text = if (isEditMode) "Editar Perfil" else stringResource(R.string.create_profile_title),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -244,26 +232,23 @@ fun CriarPerfilScreen(
                         )
                     }
 
-                    Box(
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.step_badge_text),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    if (!isEditMode) {
+                        Box(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.step_badge_text),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
-
-                HorizontalDivider(
-                    thickness = 4.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                HorizontalDivider(thickness = 4.dp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.fillMaxWidth())
             }
         }
     ) { innerPadding ->
@@ -278,11 +263,7 @@ fun CriarPerfilScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Container do Avatar com exibição direta pela Coil
-            Box(
-                modifier = Modifier.size(110.dp),
-                contentAlignment = Alignment.BottomEnd
-            ) {
+            Box(modifier = Modifier.size(110.dp), contentAlignment = Alignment.BottomEnd) {
                 Box(
                     modifier = Modifier
                         .size(100.dp)
@@ -294,21 +275,12 @@ fun CriarPerfilScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     if (profileImageUri != null) {
-                        AsyncImage(
-                            model = profileImageUri,
-                            contentDescription = "Foto selecionada",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
+                        AsyncImage(model = profileImageUri, contentDescription = "Foto selecionada", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                     } else {
-                        Text(
-                            text = "👦",
-                            fontSize = 48.sp
-                        )
+                        Text(text = "👦", fontSize = 48.sp)
                     }
                 }
 
-                // Botão flutuante de câmera
                 Box(
                     modifier = Modifier
                         .size(32.dp)
@@ -317,12 +289,7 @@ fun CriarPerfilScreen(
                         .clickable { showImagePickerDialog = true },
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.PhotoCamera,
-                        contentDescription = "Alterar avatar",
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(16.dp)
-                    )
+                    Icon(imageVector = Icons.Default.PhotoCamera, contentDescription = "Alterar avatar", tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(16.dp))
                 }
             }
 
@@ -339,10 +306,7 @@ fun CriarPerfilScreen(
             FormLabel(text = stringResource(R.string.label_full_name))
             FormTextField(
                 value = nomeCompleto,
-                onValueChange = {
-                    nomeCompleto = it
-                    if (nomeError != null) nomeError = null
-                },
+                onValueChange = { nomeCompleto = it; if (nomeError != null) nomeError = null },
                 placeholder = stringResource(R.string.placeholder_full_name),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
                 modifier = Modifier.focusRequester(focusRequester),
@@ -355,10 +319,7 @@ fun CriarPerfilScreen(
             FormLabel(text = stringResource(R.string.label_email))
             FormTextField(
                 value = email,
-                onValueChange = {
-                    email = it
-                    if (emailError != null) emailError = null
-                },
+                onValueChange = { email = it; if (emailError != null) emailError = null },
                 placeholder = stringResource(R.string.placeholder_email),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
                 isError = emailError != null,
@@ -372,10 +333,7 @@ fun CriarPerfilScreen(
                 value = telefone,
                 onValueChange = {
                     val filtered = it.filter { char -> char.isDigit() }
-                    if (filtered.length <= 11) {
-                        telefone = filtered
-                        if (telefoneError != null) telefoneError = null
-                    }
+                    if (filtered.length <= 11) { telefone = filtered; if (telefoneError != null) telefoneError = null }
                 },
                 placeholder = "Ex.: 11999999999",
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
@@ -390,10 +348,7 @@ fun CriarPerfilScreen(
                 value = cpf,
                 onValueChange = {
                     val filtered = it.filter { char -> char.isDigit() }
-                    if (filtered.length <= 11) {
-                        cpf = filtered
-                        if (cpfError != null) cpfError = null
-                    }
+                    if (filtered.length <= 11) { cpf = filtered; if (cpfError != null) cpfError = null }
                 },
                 placeholder = "Ex.: 00000000000",
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
@@ -408,104 +363,93 @@ fun CriarPerfilScreen(
                 value = bairroCep,
                 onValueChange = {
                     val filtered = it.filter { char -> char.isDigit() }
-                    if (filtered.length <= 8) {
-                        bairroCep = filtered
-                        if (bairroCepError != null) bairroCepError = null
-                    }
+                    if (filtered.length <= 8) { bairroCep = filtered; if (bairroCepError != null) bairroCepError = null }
                 },
                 placeholder = "Ex.: 04101000",
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done, keyboardType = KeyboardType.Text),
+                keyboardOptions = KeyboardOptions(imeAction = if(isEditMode) ImeAction.Done else ImeAction.Next, keyboardType = KeyboardType.Text),
                 isError = bairroCepError != null,
                 errorMessage = bairroCepError
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            val consentText = buildAnnotatedString {
-                append(stringResource(R.string.create_profile_consent_part1))
-                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
-                    append(stringResource(R.string.terms_of_use))
+            // Lógica de Senha (só aparece se NÃO for edição)
+            if (!isEditMode) {
+                FormLabel(text = "SENHA *")
+                FormPasswordField(
+                    value = senha,
+                    onValueChange = { senha = it; if (senhaError != null) senhaError = null },
+                    placeholder = "Mínimo 6 caracteres",
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next, keyboardType = KeyboardType.Password),
+                    isError = senhaError != null,
+                    errorMessage = senhaError
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                FormLabel(text = "CONFIRMAR SENHA *")
+                FormPasswordField(
+                    value = confirmarSenha,
+                    onValueChange = { confirmarSenha = it; if (confirmarSenhaError != null) confirmarSenhaError = null },
+                    placeholder = "Repita sua senha",
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done, keyboardType = KeyboardType.Password),
+                    isError = confirmarSenhaError != null,
+                    errorMessage = confirmarSenhaError
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                val consentText = buildAnnotatedString {
+                    append(stringResource(R.string.create_profile_consent_part1))
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
+                        append(stringResource(R.string.terms_of_use))
+                    }
+                    append(stringResource(R.string.create_profile_consent_part2))
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
+                        append(stringResource(R.string.privacy_policy))
+                    }
+                    append(".")
                 }
-                append(stringResource(R.string.create_profile_consent_part2))
-                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
-                    append(stringResource(R.string.privacy_policy))
-                }
-                append(".")
+
+                Text(
+                    text = consentText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                )
             }
-
-            Text(
-                text = consentText,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = {
+            ProfileBottomActionButtons(
+                primaryButtonText = if (isEditMode) "Salvar Alterações" else stringResource(R.string.create_profile_title),
+                isEditMode = isEditMode,
+                onPrimaryClick = {
                     var isValid = true
 
-                    // Validação Nome Completo
-                    if (nomeCompleto.trim().isEmpty()) {
-                        nomeError = "Nome completo não pode ser vazio"
-                        isValid = false
-                    } else if (nomeCompleto.trim().split(" ").size < 2) {
-                        nomeError = "Digite seu nome completo (Nome e Sobrenome)"
-                        isValid = false
-                    } else {
-                        nomeError = null
-                    }
+                    if (nomeCompleto.trim().isEmpty()) { nomeError = "Nome completo não pode ser vazio"; isValid = false }
+                    else if (nomeCompleto.trim().split(" ").size < 2) { nomeError = "Digite seu nome completo"; isValid = false }
 
-                    // Validação E-mail
                     val emailTrimmed = email.trim()
-                    if (emailTrimmed.isEmpty()) {
-                        emailError = "E-mail não pode ser vazio"
-                        isValid = false
-                    } else if (!emailTrimmed.contains("@") || !emailTrimmed.contains(".com")) {
-                        emailError = "E-mail inválido (deve conter @ e .com)"
-                        isValid = false
-                    } else {
-                        emailError = null
-                    }
+                    if (emailTrimmed.isEmpty()) { emailError = "E-mail não pode ser vazio"; isValid = false }
+                    else if (!emailTrimmed.contains("@") || !emailTrimmed.contains(".com")) { emailError = "E-mail inválido"; isValid = false }
 
-                    // Validação Telefone
                     val phoneDigits = telefone.filter { it.isDigit() }
-                    if (telefone.trim().isEmpty()) {
-                        telefoneError = "Telefone não pode ser vazio"
-                        isValid = false
-                    } else if (phoneDigits.length < 10 || phoneDigits.length > 11) {
-                        telefoneError = "Telefone inválido (deve conter o DDD e 10 ou 11 dígitos)"
-                        isValid = false
-                    } else {
-                        telefoneError = null
-                    }
+                    if (telefone.trim().isEmpty()) { telefoneError = "Telefone não pode ser vazio"; isValid = false }
+                    else if (phoneDigits.length < 10 || phoneDigits.length > 11) { telefoneError = "Telefone inválido"; isValid = false }
 
-                    // Validação CPF
                     val cpfDigits = cpf.filter { it.isDigit() }
-                    if (cpf.trim().isEmpty()) {
-                        cpfError = "CPF não pode ser vazio"
-                        isValid = false
-                    } else if (cpfDigits.length != 11) {
-                        cpfError = "CPF inválido (deve conter exatamente 11 dígitos)"
-                        isValid = false
-                    } else {
-                        cpfError = null
-                    }
+                    if (cpf.trim().isEmpty()) { cpfError = "CPF não pode ser vazio"; isValid = false }
+                    else if (cpfDigits.length != 11) { cpfError = "CPF inválido"; isValid = false }
 
-                    // Validação CEP
                     val cepDigits = bairroCep.filter { it.isDigit() }
-                    if (bairroCep.trim().isEmpty()) {
-                        bairroCepError = "CEP não pode ser vazio"
-                        isValid = false
-                    } else if (cepDigits.length != 8) {
-                        bairroCepError = "CEP inválido (deve conter exatamente 8 números)"
-                        isValid = false
-                    } else {
-                        bairroCepError = null
+                    if (bairroCep.trim().isEmpty()) { bairroCepError = "CEP não pode ser vazio"; isValid = false }
+                    else if (cepDigits.length != 8) { bairroCepError = "CEP inválido"; isValid = false }
+
+                    if (!isEditMode) {
+                        if (senha.length < 6) { senhaError = "A senha deve ter no mínimo 6 caracteres"; isValid = false }
+                        if (senha != confirmarSenha) { confirmarSenhaError = "As senhas não coincidem"; isValid = false }
                     }
 
                     if (isValid) {
@@ -517,65 +461,16 @@ fun CriarPerfilScreen(
                                     telefone = telefone,
                                     cpfOrCnpj = cpf,
                                     cep = bairroCep,
-                                    tipoPerfil = "PF"
+                                    tipoPerfil = "PF",
+                                    senha = if (isEditMode) (savedProfile?.senha ?: "") else senha
                                 )
                             )
-                            onCreateProfileClick(nomeCompleto, email, telefone, cpf, bairroCep)
+                            onSaveProfileClick(nomeCompleto, email, telefone, cpf, bairroCep)
                         }
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(R.string.create_profile_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(MaterialTheme.shapes.medium)
-                    .background(Color(0xFFEBF3EF))
-                    .border(1.dp, Color(0xFF52B788), MaterialTheme.shapes.medium)
-                    .clickable { onLoginClick() }
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.already_has_account_text),
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color(0xFF2D2D2D)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = stringResource(R.string.login_here),
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1B4332)
-                )
-            }
+                onLoginClick = onLoginClick
+            )
         }
     }
 }
@@ -586,9 +481,7 @@ fun FormLabel(text: String) {
         val parts = text.split("*")
         append(parts[0])
         if (text.contains("*")) {
-            withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.error)) {
-                append("*")
-            }
+            withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.error)) { append("*") }
         }
     }
 
@@ -597,9 +490,7 @@ fun FormLabel(text: String) {
         style = MaterialTheme.typography.labelLarge,
         fontWeight = FontWeight.Bold,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 6.dp)
+        modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp)
     )
 }
 
@@ -618,15 +509,8 @@ fun FormTextField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = {
-                Text(
-                    text = placeholder,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                )
-            },
-            modifier = modifier
-                .fillMaxWidth()
-                .height(56.dp),
+            placeholder = { Text(text = placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
+            modifier = modifier.fillMaxWidth().height(56.dp),
             shape = MaterialTheme.shapes.medium,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -639,12 +523,61 @@ fun FormTextField(
             isError = isError,
             keyboardOptions = keyboardOptions,
             keyboardActions = KeyboardActions(
-                onNext = {
-                    focusManager.moveFocus(FocusDirection.Next)
-                },
-                onDone = {
-                    focusManager.clearFocus()
+                onNext = { focusManager.moveFocus(FocusDirection.Next) },
+                onDone = { focusManager.clearFocus() }
+            )
+        )
+        if (isError && errorMessage != null) {
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun FormPasswordField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    modifier: Modifier = Modifier,
+    isError: Boolean = false,
+    errorMessage: String? = null
+) {
+    var passwordVisible by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            placeholder = { Text(text = placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
+            modifier = modifier.fillMaxWidth().height(56.dp),
+            shape = MaterialTheme.shapes.medium,
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(imageVector = image, contentDescription = "Mostrar senha")
                 }
+            },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                errorBorderColor = MaterialTheme.colorScheme.error
+            ),
+            singleLine = true,
+            isError = isError,
+            keyboardOptions = keyboardOptions,
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Next) },
+                onDone = { focusManager.clearFocus() }
             )
         )
         if (isError && errorMessage != null) {

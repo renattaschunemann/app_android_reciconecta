@@ -34,7 +34,7 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
         navController = navController,
         startDestination = ScreenRoutes.Onboarding.route
     ) {
-        // Tela de Onboarding (Onboarding.kt)
+        // --- TELA DE ONBOARDING ---
         composable(ScreenRoutes.Onboarding.route) {
             OnboardingScreen(
                 onNavigateToCreateProfile = { profileType ->
@@ -54,11 +54,16 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
         // --- TELA CRIAR PERFIL PF (FÍSICA) ---
         composable(ScreenRoutes.CriarPerfilPF.route) {
             CriarPerfilScreen(
+                isEditMode = false,
                 onBackClick = { navController.popBackStack() },
-                onLoginClick = { navController.navigate(ScreenRoutes.Login.route) },
-                onCreateProfileClick = { _, _, _, _, _ ->
-                    navController.navigate(ScreenRoutes.Home.route) {
-                        popUpTo(ScreenRoutes.Onboarding.route) { inclusive = true }
+                onLoginClick = {
+                    navController.navigate(ScreenRoutes.Login.route) {
+                        popUpTo(ScreenRoutes.Onboarding.route) { inclusive = false }
+                    }
+                },
+                onSaveProfileClick = { _, _, _, _, _ ->
+                    navController.navigate(ScreenRoutes.Login.route) {
+                        popUpTo(ScreenRoutes.Onboarding.route) { inclusive = false }
                     }
                 }
             )
@@ -67,11 +72,16 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
         // --- TELA CRIAR PERFIL PJ (EMPRESA) ---
         composable(ScreenRoutes.CriarPerfilPJ.route) {
             CriarPerfilPJScreen(
+                isEditMode = false,
                 onBackClick = { navController.popBackStack() },
-                onLoginClick = { navController.navigate(ScreenRoutes.Login.route) },
-                onCreateProfileClick = { _, _, _, _, _ ->
-                    navController.navigate(ScreenRoutes.Home.route) {
-                        popUpTo(ScreenRoutes.Onboarding.route) { inclusive = true }
+                onLoginClick = {
+                    navController.navigate(ScreenRoutes.Login.route) {
+                        popUpTo(ScreenRoutes.Onboarding.route) { inclusive = false }
+                    }
+                },
+                onSaveProfileClick = { _, _, _, _, _ ->
+                    navController.navigate(ScreenRoutes.Login.route) {
+                        popUpTo(ScreenRoutes.Onboarding.route) { inclusive = false }
                     }
                 }
             )
@@ -80,11 +90,16 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
         // --- TELA CRIAR PERFIL COLETOR (CATADOR) ---
         composable(ScreenRoutes.CriarPerfilColetor.route) {
             CriarPerfilColetorScreen(
+                isEditMode = false,
                 onBackClick = { navController.popBackStack() },
-                onLoginClick = { navController.navigate(ScreenRoutes.Login.route) },
-                onCreateProfileClick = { _, _, _, _, _ ->
-                    navController.navigate(ScreenRoutes.Home.route) {
-                        popUpTo(ScreenRoutes.Onboarding.route) { inclusive = true }
+                onLoginClick = {
+                    navController.navigate(ScreenRoutes.Login.route) {
+                        popUpTo(ScreenRoutes.Onboarding.route) { inclusive = false }
+                    }
+                },
+                onSaveProfileClick = { _, _, _, _, _ ->
+                    navController.navigate(ScreenRoutes.Login.route) {
+                        popUpTo(ScreenRoutes.Onboarding.route) { inclusive = false }
                     }
                 }
             )
@@ -93,17 +108,54 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
         // Para manter compatibilidade com rota antiga
         composable(ScreenRoutes.CriarPerfil.route) {
             CriarPerfilScreen(
+                isEditMode = false,
                 onBackClick = { navController.popBackStack() },
-                onLoginClick = { navController.navigate(ScreenRoutes.Login.route) },
-                onCreateProfileClick = { _, _, _, _, _ ->
-                    navController.navigate(ScreenRoutes.Home.route) {
-                        popUpTo(ScreenRoutes.Onboarding.route) { inclusive = true }
+                onLoginClick = {
+                    navController.navigate(ScreenRoutes.Login.route) {
+                        popUpTo(ScreenRoutes.Onboarding.route) { inclusive = false }
+                    }
+                },
+                onSaveProfileClick = { _, _, _, _, _ ->
+                    navController.navigate(ScreenRoutes.Login.route) {
+                        popUpTo(ScreenRoutes.Onboarding.route) { inclusive = false }
                     }
                 }
             )
         }
 
-        // Tela de Login (LoginScreen.kt)
+        // --- ROTA DINÂMICA PARA EDITAR PERFIL ---
+        composable("editar_perfil/{tipoPerfil}") { backStackEntry ->
+            val tipoPerfil = backStackEntry.arguments?.getString("tipoPerfil") ?: "PF"
+
+            when (tipoPerfil) {
+                "PJ" -> CriarPerfilPJScreen(
+                    isEditMode = true,
+                    onBackClick = { navController.popBackStack() },
+                    onLoginClick = {}, // Inativo no modo edição
+                    onSaveProfileClick = { _, _, _, _, _ ->
+                        navController.popBackStack() // Salva e volta para a tela de Perfil
+                    }
+                )
+                "COLETOR" -> CriarPerfilColetorScreen(
+                    isEditMode = true,
+                    onBackClick = { navController.popBackStack() },
+                    onLoginClick = {}, // Inativo no modo edição
+                    onSaveProfileClick = { _, _, _, _, _ ->
+                        navController.popBackStack()
+                    }
+                )
+                else -> CriarPerfilScreen( // PF (Pessoa Física) é o padrão
+                    isEditMode = true,
+                    onBackClick = { navController.popBackStack() },
+                    onLoginClick = {}, // Inativo no modo edição
+                    onSaveProfileClick = { _, _, _, _, _ ->
+                        navController.popBackStack()
+                    }
+                )
+            }
+        }
+
+        // --- TELA DE LOGIN ---
         composable(ScreenRoutes.Login.route) {
             LoginScreen(
                 onBackClick = { navController.popBackStack() },
@@ -139,6 +191,22 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
                     navController.navigate(destination) {
                         launchSingleTop = true
                         restoreState = true
+                    }
+                },
+                onEditProfileClick = { tipoPerfil ->
+                    // Redireciona para a rota dinâmica criada acima
+                    navController.navigate("editar_perfil/$tipoPerfil")
+                },
+                onLogoutClick = {
+                    // Direciona para o Login e limpa toda a pilha para não voltar logado
+                    navController.navigate(ScreenRoutes.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                onDeleteAccountConfirm = {
+                    // Direciona para o Onboarding após apagar, limpando toda a pilha
+                    navController.navigate(ScreenRoutes.Onboarding.route) {
+                        popUpTo(0) { inclusive = true }
                     }
                 }
             )

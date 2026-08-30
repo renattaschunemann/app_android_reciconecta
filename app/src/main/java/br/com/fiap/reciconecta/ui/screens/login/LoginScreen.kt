@@ -7,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -20,12 +19,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -40,11 +37,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import br.com.fiap.reciconecta.R
 import br.com.fiap.reciconecta.data.local.datastore.UserProfilePreferences
 import br.com.fiap.reciconecta.data.repository.UserRepositoryImpl
-import br.com.fiap.reciconecta.domain.model.UserProfile
 import br.com.fiap.reciconecta.ui.screens.perfil.criar.FormLabel
 import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
 import kotlinx.coroutines.delay
@@ -134,7 +129,7 @@ fun LoginScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Logo
+            // Logo Original
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -255,7 +250,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Botão Entrar
+            // Botão Entrar com Validação do DataStore
             Button(
                 onClick = {
                     var isValid = true
@@ -270,28 +265,21 @@ fun LoginScreen(
                     if (senha.isEmpty()) {
                         senhaError = "Senha não pode ser vazia"
                         isValid = false
-                    } else if (senha.length < 4) {
-                        senhaError = "A senha deve ter pelo menos 4 caracteres"
-                        isValid = false
                     }
 
                     if (isValid) {
                         scope.launch {
-                            // Verifica se já existe um perfil persistido no DataStore
-                            val saved = userRepository.userProfile.firstOrNull()
-                            if (saved == null) {
-                                // Se não existe nenhum perfil ainda, cria um mock com as informações do login para fins de simulação
-                                userRepository.saveProfile(
-                                    UserProfile(
-                                        nome = "Carlos Eduardo Silva",
-                                        email = email,
-                                        telefone = "11999999999",
-                                        cpfOrCnpj = "12345678909",
-                                        cep = "04101000"
-                                    )
-                                )
+                            // Busca o perfil salvo no dispositivo
+                            val savedProfile = userRepository.userProfile.firstOrNull()
+
+                            if (savedProfile == null) {
+                                emailError = "Nenhuma conta encontrada. Cadastre-se primeiro."
+                            } else if (savedProfile.email.equals(email.trim(), ignoreCase = true) && savedProfile.senha == senha) {
+                                // E-mail e senha conferem! Avança para a Home
+                                onLoginSuccess()
+                            } else {
+                                senhaError = "E-mail ou senha incorretos."
                             }
-                            onLoginSuccess()
                         }
                     }
                 },
