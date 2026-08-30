@@ -1,167 +1,134 @@
 package br.com.fiap.reciconecta.ui.screens.mapa
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Autorenew
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import br.com.fiap.reciconecta.R
-import br.com.fiap.reciconecta.ui.components.AppBottomBar
-import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.core.content.ContextCompat
+import br.com.fiap.reciconecta.ui.viewmodels.ColetaViewModel
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
+import kotlinx.coroutines.launch
 
-data class Collector(
-    val id: Int,
-    val name: String,
-    val rating: Double,
-    val distance: Double,
-    val itemsAvailable: Int,
-    val price: Int,
-    val avatar: String,
-    val avatarBg: Color,
-    val tags: List<Pair<String, Color>>,
-    val isBestRated: Boolean = false
+// --- MODELO DOS CATADORES ---
+data class Catador(
+    val id: String,
+    val nome: String,
+    val avaliacao: Double,
+    val distanciaKm: Double,
+    val materiaisAceitos: List<String>,
+    val lat: Double,
+    val lng: Double
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapaScreen(
-    onFilterClick: () -> Unit = {},
-    onCollectorClick: (Collector) -> Unit = {},
-    onNavigate: (String) -> Unit = {}
+    viewModel: ColetaViewModel,
+    onBackClick: () -> Unit = {},
+    onNavigateToHome: () -> Unit = {}
 ) {
-    val collectors = listOf(
-        Collector(
-            id = 1,
-            name = "Carlos Silva",
-            rating = 4.8,
-            distance = 0.8,
-            itemsAvailable = 5,
-            price = 12,
-            avatar = "👦",
-            avatarBg = Color(0xFFCDEBD9),
-            tags = listOf("PET" to Color(0xFFD0E1FD), "Vidro" to Color(0xFFCDEBD9))
-        ),
-        Collector(
-            id = 2,
-            name = "Ana Souza",
-            rating = 4.5,
-            distance = 1.2,
-            itemsAvailable = 3,
-            price = 28,
-            avatar = "👧",
-            avatarBg = Color(0xFFD6E4FD),
-            tags = listOf("Metal" to Color(0xFFFEF0CD), "Alumínio" to Color(0xFFFEF0CD))
-        ),
-        Collector(
-            id = 3,
-            name = "Coop. Verde",
-            rating = 4.9,
-            distance = 1.5,
-            itemsAvailable = 8,
-            price = 8,
-            avatar = "🏢",
-            avatarBg = Color(0xFFE8E1FD),
-            tags = listOf("Papel" to Color(0xFFE8E1FD), "Papelão" to Color(0xFFE8E1FD)),
-            isBestRated = true
-        )
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
+    val materiaisDoUsuario = viewModel.itemsList.map { it.name }.distinct()
+
+    // Mock com coordenadas próximas à Vila Mariana (SP)
+    val todosCatadores = listOf(
+        Catador("1", "Carlos Silva", 4.8, 0.8, listOf("PET/Plástico", "Papelão", "Metal", "Vidro"), -23.5850, -46.6320),
+        Catador("2", "Maria Souza", 4.9, 2.5, listOf("Vidro", "Óleo de Cozinha", "Metal"), -23.5900, -46.6380),
+        Catador("3", "João da Silva", 4.5, 1.2, listOf("PET/Plástico", "Papelão", "Vidro", "Metal", "Eletrônico"), -23.5880, -46.6300),
+        Catador("4", "Ana Costa", 5.0, 3.1, listOf("PET/Plástico", "Papelão"), -23.5820, -46.6360)
     )
 
-    Scaffold(
-        topBar = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .statusBarsPadding()
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        modifier = Modifier.weight(1f),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.map_title),
-                            style = MaterialTheme.typography.titleLarge.copy(fontSize = 18.sp),
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(Color(0xFFEBF3EF))
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.map_badge_text),
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 1
-                            )
-                        }
-                    }
+    // LÓGICA DE FILTRO
+    val catadoresFiltrados = todosCatadores.filter { catador ->
+        if (materiaisDoUsuario.isEmpty()) true
+        else materiaisDoUsuario.all { itemUsuario -> catador.materiaisAceitos.contains(itemUsuario) }
+    }
 
-                    Spacer(modifier = Modifier.width(8.dp))
+    // Configuração inicial da Câmera do Mapa (Centro da Vila Mariana)
+    val spVila Mariana = LatLng(-23.5898, -46.6342)
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(spVila Mariana, 14f)
+    }
 
-                    OutlinedButton(
-                        onClick = onFilterClick,
-                        shape = MaterialTheme.shapes.medium,
-                        border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                            width = 1.dp
-                        ),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        ),
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp),
-                        modifier = Modifier.wrapContentSize()
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.FilterList,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = stringResource(R.string.map_filter),
-                            style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp),
-                            fontWeight = FontWeight.Bold
+    // Função para buscar e centralizar na localização do usuário
+    fun centralizarNaLocalizacaoAtual() {
+        val permissionCheck = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                location?.let {
+                    val userLatLng = LatLng(it.latitude, it.longitude)
+                    scope.launch {
+                        cameraPositionState.animate(
+                            update = CameraUpdateFactory.newLatLngZoom(userLatLng, 15f),
+                            durationMs = 1000
                         )
                     }
                 }
             }
-        },
-        bottomBar = {
-            AppBottomBar(
-                currentRoute = "coletas",
-                onNavigate = onNavigate
+        }
+    }
+
+    // Solicitador de Permissão de Localização
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            centralizarNaLocalizacaoAtual()
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Catadores Próximos", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
         }
     ) { innerPadding ->
@@ -171,364 +138,297 @@ fun MapaScreen(
                 .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
+
+            // 1. O MAPA DO GOOGLE COM BOTÃO FLUTUANTE DE GPS
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(240.dp)
-                    .background(Color(0xFFE5EDE9))
+                    .weight(1.2f)
             ) {
-                Column(
+                GoogleMap(
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.SpaceEvenly
+                    cameraPositionState = cameraPositionState,
+                    uiSettings = com.google.maps.android.compose.MapUiSettings(zoomControlsEnabled = false)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        MapBlock()
-                        MapBlock(hasPark = true)
-                        MapBlock()
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        MapBlock()
-                        MapBlock()
-                        MapBlock()
+                    val catadorMaisProximoId = catadoresFiltrados.minByOrNull { it.distanciaKm }?.id
+
+                    catadoresFiltrados.forEach { catador ->
+                        val markerState = remember(catador.id) {
+                            MarkerState(position = LatLng(catador.lat, catador.lng))
+                        }
+
+                        LaunchedEffect(Unit) {
+                            markerState.showInfoWindow()
+                        }
+
+                        val markerColor = if (catador.id == catadorMaisProximoId) {
+                            BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
+                        } else {
+                            BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
+                        }
+
+                        Marker(
+                            state = markerState,
+                            title = if (catador.id == catadorMaisProximoId) "⭐ ${catador.nome} (Mais Próximo)" else catador.nome,
+                            snippet = "📍 ${catador.distanciaKm} km • ⭐ ${catador.avaliacao}",
+                            icon = markerColor
+                        )
                     }
                 }
 
-                Box(
+                // Botão Flutuante (FAB) para centralizar na localização do usuário mantendo a identidade visual
+                FloatingActionButton(
+                    onClick = {
+                        val permissionCheck = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+                        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+                            centralizarNaLocalizacaoAtual()
+                        } else {
+                            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                        }
+                    },
                     modifier = Modifier
-                        .size(24.dp)
-                        .align(Alignment.Center)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
-                        .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape),
-                    contentAlignment = Alignment.Center
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp),
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = Color(0xFF1B4332)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(10.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary)
+                    Icon(
+                        imageVector = Icons.Default.MyLocation,
+                        contentDescription = "Minha Localização"
                     )
                 }
-
-                MapPinBubble(
-                    text = "PET",
-                    price = "R$ 15",
-                    modifier = Modifier.offset(x = 60.dp, y = 20.dp)
-                )
-                MapPinBubble(
-                    text = "Vidr",
-                    price = "R$ 12",
-                    modifier = Modifier.offset(x = 40.dp, y = 90.dp)
-                )
-                MapPinBubble(
-                    text = "Pape",
-                    price = "R$ 8",
-                    modifier = Modifier.offset(x = 130.dp, y = 60.dp)
-                )
-                MapPinBubble(
-                    text = "Mota",
-                    price = "",
-                    modifier = Modifier.offset(x = 220.dp, y = 25.dp)
-                )
-                MapPinBubble(
-                    text = "Mist",
-                    price = "R$ 35",
-                    modifier = Modifier.offset(x = 280.dp, y = 50.dp)
-                )
             }
 
-            LazyColumn(
+            // 2. Lista de Catadores Filtrados
+            Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
-                    .padding(horizontal = 24.dp),
-                contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .weight(1f),
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 8.dp,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
             ) {
-                item {
-                    Text(
-                        text = stringResource(R.string.map_subtitle),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = 4.dp)
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .width(40.dp)
+                            .height(4.dp)
+                            .clip(CircleShape)
+                            .background(Color.LightGray)
+                            .align(Alignment.CenterHorizontally)
                     )
-                }
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                items(collectors) { collector ->
-                    CollectorCard(
-                        collector = collector,
-                        onClick = { onCollectorClick(collector) }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun MapBlock(hasPark: Boolean = false) {
-    Box(
-        modifier = Modifier
-            .size(width = 110.dp, height = 75.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(if (hasPark) Color(0xFFC7DFD1) else Color(0xFFD7E5DD))
-            .padding(8.dp)
-    ) {
-        if (hasPark) {
-            Text(
-                text = "Praça",
-                fontSize = 10.sp,
-                color = Color(0xFF1B4332).copy(alpha = 0.6f),
-                fontWeight = FontWeight.Bold
-            )
-        }
-    }
-}
-
-@Composable
-private fun MapPinBubble(
-    text: String,
-    price: String,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        if (price.isNotEmpty()) {
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(Color(0xFFE47B3E))
-                    .padding(horizontal = 4.dp, vertical = 2.dp)
-            ) {
-                Text(
-                    text = price,
-                    fontSize = 8.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(Color.White)
-                .border(1.5.dp, Color(0xFF1B4332), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = text,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF1B4332)
-            )
-        }
-    }
-}
-
-@Composable
-fun CollectorCard(
-    collector: Collector,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), MaterialTheme.shapes.large)
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(60.dp)
-                        .clip(MaterialTheme.shapes.medium)
-                        .background(collector.avatarBg),
-                    contentAlignment = Alignment.Center
-                ) {
                     Text(
-                        text = collector.avatar,
-                        fontSize = 32.sp
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Box(
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(if (collector.isBestRated) Color(0xFFE47B3E) else Color(0xFF1B4332))
-                        .padding(horizontal = 8.dp, vertical = 2.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(10.dp)
-                        )
-                        Spacer(modifier = Modifier.width(3.dp))
-                        Text(
-                            text = collector.rating.toString(),
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = collector.name,
+                        text = "Selecione um catador para solicitar coleta",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
+                        fontWeight = FontWeight.Bold
                     )
 
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(Color(0xFFFFF5EE))
-                            .padding(horizontal = 10.dp, vertical = 4.dp)
-                    ) {
+                    if (materiaisDoUsuario.isNotEmpty()) {
                         Text(
-                            text = "R$ " + collector.price,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFE47B3E)
+                            text = "Filtro ativo para: ${materiaisDoUsuario.joinToString(", ")}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
                         )
+                    } else {
+                        Spacer(modifier = Modifier.height(12.dp))
                     }
-                }
 
-                if (collector.isBestRated) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(Color(0xFFFFF5EE))
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.best_rated),
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFE47B3E)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val fullStars = collector.rating.toInt()
-                    for (i in 1..5) {
-                        if (i <= fullStars) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = null,
-                                tint = Color(0xFFF59E0B),
-                                modifier = Modifier.size(14.dp)
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.StarBorder,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.outline,
-                                modifier = Modifier.size(14.dp)
+                    if (catadoresFiltrados.isEmpty()) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                text = "Nenhum catador próximo recolhe todos\nos materiais listados no momento.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error,
+                                textAlign = TextAlign.Center
                             )
                         }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(bottom = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(catadoresFiltrados) { catador ->
+                                CatadorCard(
+                                    catador = catador,
+                                    onSolicitacaoConfirmada = onNavigateToHome
+                                )
+                            }
+                        }
                     }
-                    Spacer(modifier = Modifier.width(6.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CatadorCard(
+    catador: Catador,
+    onSolicitacaoConfirmada: () -> Unit = {}
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFFE8F5E9)),
+                    contentAlignment = Alignment.Center
+                ) {
                     Text(
-                        text = collector.rating.toString(),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
+                        text = catador.nome.first().toString(),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color(0xFF4CAF50),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = catador.nome,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFC107), modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "${catador.avaliacao} • A ${catador.distanciaKm} km",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = catador.materiaisAceitos.take(3).joinToString(", ") + if(catador.materiaisAceitos.size > 3) "..." else "",
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+            }
 
-                Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                val distanceStr = stringResource(R.string.distance_format, collector.distance)
-                val itemsStr = stringResource(R.string.items_count_format, collector.itemsAvailable)
-
-                Text(
-                    text = "$distanceStr  ·  $itemsStr",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            // Botão Laranja de Solicitação
+            Button(
+                onClick = { showDialog = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE65100)),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Autorenew,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
                 )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    collector.tags.forEach { (tagName, tagBgColor) ->
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(tagBgColor)
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        ) {
-                            Text(
-                                text = tagName,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Solicitar Coleta", fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
+
+    if (showDialog) {
+        SolicitacaoSucessoDialog(
+            catadorNome = catador.nome,
+            onDismiss = { showDialog = false },
+            onConfirm = {
+                showDialog = false
+                onSolicitacaoConfirmada()
+            }
+        )
+    }
 }
 
-@Preview(showBackground = true)
 @Composable
-private fun MapaScreenPreview() {
-    ReciconectaTheme {
-        MapaScreen()
+fun SolicitacaoSucessoDialog(
+    catadorNome: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = Color.White,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFE8F5E9)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Sucesso",
+                        tint = Color(0xFF4CAF50),
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Solicitação Registrada!",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1B1B1B)
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                val textoFormatado = buildAnnotatedString {
+                    append("Seu pedido foi enviado para ")
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color(0xFF1B4332))) {
+                        append(catadorNome)
+                    }
+                    append(".\nVocê receberá uma confirmação em breve.")
+                }
+
+                Text(
+                    text = textoFormatado,
+                    textAlign = TextAlign.Center,
+                    color = Color.DarkGray,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = onConfirm,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B4332)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("OK", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                }
+            }
+        }
     }
 }

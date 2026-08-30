@@ -4,6 +4,11 @@
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
+
+    <!-- Permissões de Internet e Localização -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.CAMERA" />
 
     <application
@@ -15,6 +20,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Reciconecta">
+
+        <!-- 💡 CHAVE DE API DO GOOGLE MAPS -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDgGozzu27-_u30XPXW064sTbB0bBdHNc4" />
 
         <!-- 💡 Provider obrigatório para gerar as URIs de foto da câmera -->
         <provider

@@ -1,5 +1,3 @@
-import org.gradle.internal.impldep.org.jsoup.nodes.Entities
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -35,10 +33,21 @@ android {
     buildFeatures {
         compose = true
     }
+
+    // 💡 BLOCO ADICIONADO PARA CORRIGIR O ERRO DE 16 KB NO ANDROID 17
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
 }
 
 dependencies {
-    implementation(platform(libs.androidx.compose.bom))
+    val bom = platform(libs.androidx.compose.bom)
+    implementation(bom)
+    androidTestImplementation(bom)
+    debugImplementation(bom)
+
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
@@ -61,4 +70,24 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.6.0")
 
     implementation(libs.androidx.datastore.preferences)
+
+    // Google Play Services Location (para FusedLocationProviderClient, Priority, etc)
+    implementation("com.google.android.gms:play-services-location:21.2.0")
+
+    // CameraX (Para exibir a câmera e capturar os quadros)
+    val cameraxVersion = "1.3.1"
+    implementation("androidx.camera:camera-core:$cameraxVersion")
+    implementation("androidx.camera:camera-camera2:$cameraxVersion")
+    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+    implementation("androidx.camera:camera-view:$cameraxVersion")
+
+    // ML Kit Image Labeling (Para reconhecer os objetos)
+    implementation("com.google.mlkit:image-labeling:17.0.9")
+
+    // Permite usar o viewModel() direto no Compose
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+
+    // Bibliotecas oficiais do Google Maps para Jetpack Compose
+    implementation("com.google.maps.android:maps-compose:4.3.3")
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
 }
