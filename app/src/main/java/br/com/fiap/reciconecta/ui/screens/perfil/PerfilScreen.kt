@@ -37,8 +37,12 @@ import br.com.fiap.reciconecta.data.repository.UserRepositoryImpl
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PerfilScreen(
-    onNavigate: (String) -> Unit = {}
+    onNavigate: (String) -> Unit = {},
+    onEditProfileClick: (String) -> Unit = {}, // <-- Verifique se isso está aqui
+    onLogoutClick: () -> Unit = {},            // <-- Verifique se isso está aqui
+    onDeleteAccountConfirm: () -> Unit = {}    // <-- Verifique se isso está aqui
 ) {
+    // ... resto do código da tela de perfil
     val scrollState = rememberScrollState()
     val context = LocalContext.current
     val preferences = remember { UserProfilePreferences(context) }
