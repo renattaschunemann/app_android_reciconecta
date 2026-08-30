@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -93,7 +94,7 @@ fun ColetaScreen(
                                 var paper = 0f
                                 var metal = 0f
                                 itemsList.forEach { item ->
-                                    val amt = item.amount.toFloatOrNull() ?: 0f
+                                    val amt = item.amount.toFloat()
                                     val nameLower = item.name.lowercase()
                                     if (nameLower.contains("plast") || nameLower.contains("pet")) {
                                         plastic += amt * 0.050f

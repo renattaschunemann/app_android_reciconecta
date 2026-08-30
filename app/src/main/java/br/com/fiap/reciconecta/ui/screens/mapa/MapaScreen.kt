@@ -84,9 +84,9 @@ fun MapaScreen(
     }
 
     // Configuração inicial da Câmera do Mapa (Centro da Vila Mariana)
-    val spVila Mariana = LatLng(-23.5898, -46.6342)
+    val spVilaMariana = LatLng(-23.5898, -46.6342)
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(spVila Mariana, 14f)
+        position = CameraPosition.fromLatLngZoom(spVilaMariana, 14f)
     }
 
     // Função para buscar e centralizar na localização do usuário
