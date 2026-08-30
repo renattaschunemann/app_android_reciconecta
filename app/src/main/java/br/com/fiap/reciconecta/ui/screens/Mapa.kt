@@ -108,10 +108,20 @@ fun MapaScreen(
                     cameraPositionState = cameraPositionState
                 ) {
                     catadoresFiltrados.forEach { catador ->
+                        // Criamos um estado individual para cada marcador
+                        val markerState = remember(catador.id) {
+                            MarkerState(position = LatLng(catador.lat, catador.lng))
+                        }
+
+                        // Força o balão com o nome e a distância a aparecer aberto automaticamente
+                        LaunchedEffect(Unit) {
+                            markerState.showInfoWindow()
+                        }
+
                         Marker(
-                            state = MarkerState(position = LatLng(catador.lat, catador.lng)),
+                            state = markerState,
                             title = catador.nome,
-                            snippet = "Aceita: ${catador.materiaisAceitos.take(2).joinToString(", ")}..."
+                            snippet = "📍 ${catador.distanciaKm} km • ⭐ ${catador.avaliacao}"
                         )
                     }
                 }
