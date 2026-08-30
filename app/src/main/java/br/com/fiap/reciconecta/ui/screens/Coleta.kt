@@ -1,13 +1,27 @@
 package br.com.fiap.reciconecta.ui.screens
 
+import android.Manifest
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.Geocoder
+import android.location.Location
+import android.location.LocationManager
+import android.os.Build
+import android.provider.Settings
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.NearMe
 import androidx.compose.material.icons.filled.Recycling
@@ -21,28 +35,266 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.fiap.reciconecta.R
 import br.com.fiap.reciconecta.ui.components.AppBottomBar
 import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
+import br.com.fiap.reciconecta.ui.viewmodels.ColetaViewModel
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
+import java.util.Locale
+
+data class ColetaItem(
+    val id: String,
+    val name: String,
+    var amount: Double,
+    val unit: String
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ColetaScreen(
+    viewModel: ColetaViewModel = viewModel(), // Injeção do ViewModel
+    userProfileAddress: String = "Vila Mariana, 04101-000 - São Paulo/SP",
+    scannedItemName: String? = null,
+    scannedItemUnit: String? = null,
+    onClearScannedData: () -> Unit = {},
     onLocationClick: () -> Unit = {},
     onAddItemClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
     onNavigate: (String) -> Unit = {},
-    onBackClick: () -> Boolean
+    onBackClick: () -> Boolean = { true }
 ) {
+    val context = LocalContext.current
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
+    var currentAddressText by remember { mutableStateOf(userProfileAddress) }
+    var isLoadingLocation by remember { mutableStateOf(false) }
+
+    // Conectando a lista visual aos dados persistidos no ViewModel
+    val itemsList = viewModel.itemsList
+
     var selectedTimeWindow by remember { mutableIntStateOf(1) }
     var observations by remember { mutableStateOf("") }
 
+    // Estados do Modal
+    var showQuantityDialog by remember { mutableStateOf(false) }
+    var quantityInput by remember { mutableStateOf("") }
+    var quantityError by remember { mutableStateOf(false) }
+
     val scrollState = rememberScrollState()
     val orangeBrandColor = Color(0xFFE47B3E)
+
+    // Dispara o modal automaticamente se vierem dados do Scanner
+    LaunchedEffect(scannedItemName, scannedItemUnit) {
+        if (!scannedItemName.isNullOrEmpty() && !scannedItemUnit.isNullOrEmpty()) {
+            showQuantityDialog = true
+        }
+    }
+
+    // Modal de Quantidade
+    if (showQuantityDialog && scannedItemName != null && scannedItemUnit != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showQuantityDialog = false
+                quantityInput = ""
+                onClearScannedData()
+            },
+            title = {
+                Text(
+                    text = "Adicionar $scannedItemName",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium
+                )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "Informe a quantidade do material para a coleta:",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = quantityInput,
+                        onValueChange = {
+                            if (it.matches(Regex("^[0-9.,]*$"))) {
+                                quantityInput = it
+                                quantityError = false
+                            }
+                        },
+                        label = { Text("Quantidade ($scannedItemUnit)") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        isError = quantityError,
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    if (quantityError) {
+                        Text(
+                            text = "Insira um valor maior que zero",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val amount = quantityInput.replace(",", ".").toDoubleOrNull() ?: 0.0
+                        if (amount > 0) {
+                            // Adicionando o item através do ViewModel
+                            viewModel.addItem(
+                                ColetaItem(
+                                    id = System.currentTimeMillis().toString(),
+                                    name = scannedItemName,
+                                    amount = amount,
+                                    unit = scannedItemUnit
+                                )
+                            )
+                            showQuantityDialog = false
+                            quantityInput = ""
+                            onClearScannedData()
+                        } else {
+                            quantityError = true
+                        }
+                    }
+                ) {
+                    Text("Confirmar")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showQuantityDialog = false
+                        quantityInput = ""
+                        onClearScannedData()
+                    }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    fun fetchAddress(latitude: Double, longitude: Double) {
+        try {
+            val geocoder = Geocoder(context, Locale.getDefault())
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                geocoder.getFromLocation(latitude, longitude, 1) { addresses ->
+                    if (addresses.isNotEmpty()) {
+                        val address = addresses[0]
+                        val street = address.thoroughfare ?: address.subThoroughfare ?: ""
+                        val subLocality = address.subLocality ?: ""
+                        val city = address.subAdminArea ?: address.locality ?: ""
+                        currentAddressText = listOf(street, subLocality, city)
+                            .filter { it.isNotBlank() }
+                            .joinToString(", ")
+                            .ifEmpty { "Lat: %.4f, Long: %.4f".format(latitude, longitude) }
+                    } else {
+                        currentAddressText = "Lat: %.4f, Long: %.4f".format(latitude, longitude)
+                    }
+                    isLoadingLocation = false
+                }
+            } else {
+                @Suppress("DEPRECATION")
+                val addresses = geocoder.getFromLocation(latitude, longitude, 1)
+                if (!addresses.isNullOrEmpty()) {
+                    val address = addresses[0]
+                    val street = address.thoroughfare ?: ""
+                    val subLocality = address.subLocality ?: ""
+                    val city = address.subAdminArea ?: address.locality ?: ""
+                    currentAddressText = listOf(street, subLocality, city)
+                        .filter { it.isNotBlank() }
+                        .joinToString(", ")
+                        .ifEmpty { "Lat: %.4f, Long: %.4f".format(latitude, longitude) }
+                } else {
+                    currentAddressText = "Lat: %.4f, Long: %.4f".format(latitude, longitude)
+                }
+                isLoadingLocation = false
+            }
+        } catch (e: Exception) {
+            currentAddressText = "Lat: %.4f, Long: %.4f".format(latitude, longitude)
+            isLoadingLocation = false
+        }
+    }
+
+    fun captureCurrentLocation() {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+
+        if (!isGpsEnabled) {
+            Toast.makeText(context, "Por favor, ative a localização no seu dispositivo.", Toast.LENGTH_LONG).show()
+            val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+            context.startActivity(intent)
+            return
+        }
+
+        if (ContextCompat.checkSelfPermission(
+                context, Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(
+                context, Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            isLoadingLocation = true
+            val cancellationTokenSource = CancellationTokenSource()
+            fusedLocationClient.getCurrentLocation(
+                Priority.PRIORITY_HIGH_ACCURACY,
+                cancellationTokenSource.token
+            ).addOnSuccessListener { location: Location? ->
+                if (location != null) {
+                    fetchAddress(location.latitude, location.longitude)
+                } else {
+                    isLoadingLocation = false
+                    Toast.makeText(context, "Não foi possível obter a localização exata no momento.", Toast.LENGTH_SHORT).show()
+                }
+            }.addOnFailureListener { exception: Exception ->
+                isLoadingLocation = false
+                Toast.makeText(context, "Erro ao obter localização: ${exception.localizedMessage}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val fineGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
+        val coarseGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false
+
+        if (fineGranted || coarseGranted) {
+            captureCurrentLocation()
+        } else {
+            Toast.makeText(context, "Permissão de localização negada.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val onUseLocationClicked = {
+        onLocationClick()
+        val hasFine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        val hasCoarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+
+        if (hasFine || hasCoarse) {
+            captureCurrentLocation()
+        } else {
+            locationPermissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -119,18 +371,32 @@ fun ColetaScreen(
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = stringResource(R.string.default_address),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                if (isLoadingLocation) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Buscando localização...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    Text(
+                        text = currentAddressText,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(10.dp))
 
             Row(
                 modifier = Modifier
-                    .clickable { onLocationClick() }
+                    .clickable { onUseLocationClicked() }
                     .padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -154,22 +420,33 @@ fun ColetaScreen(
             // 2. Itens para Coleta
             SectionHeader(title = stringResource(R.string.section_items))
             Spacer(modifier = Modifier.height(8.dp))
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(MaterialTheme.shapes.medium)
-                    .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.medium)
-                    .background(MaterialTheme.colorScheme.surface)
-            ) {
-                ItemRow(
-                    name = stringResource(R.string.item_pet),
-                    quantity = "3"
+
+            if (itemsList.isEmpty()) {
+                Text(
+                    text = "Nenhum item adicionado para coleta.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(vertical = 8.dp)
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
-                ItemRow(
-                    name = stringResource(R.string.item_cardboard),
-                    quantity = "2"
-                )
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(MaterialTheme.shapes.medium)
+                        .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.medium)
+                        .background(MaterialTheme.colorScheme.surface)
+                ) {
+                    itemsList.forEachIndexed { index, item ->
+                        EditableItemRow(
+                            item = item,
+                            // Removendo o item através do ViewModel
+                            onRemove = { viewModel.removeItem(item) }
+                        )
+                        if (index < itemsList.size - 1) {
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+                        }
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -283,55 +560,6 @@ private fun SectionHeader(title: String) {
 }
 
 @Composable
-private fun ItemRow(name: String, quantity: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Recycling,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(
-                text = name,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
-        Box(
-            modifier = Modifier
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .padding(horizontal = 12.dp, vertical = 6.dp)
-        ) {
-            Text(
-                text = quantity + stringResource(R.string.unit_suffix),
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-    }
-}
-
-@Composable
 private fun TimeSlotCard(
     timeRange: String,
     isSelected: Boolean,
@@ -360,12 +588,71 @@ private fun TimeSlotCard(
     }
 }
 
+@Composable
+private fun EditableItemRow(
+    item: ColetaItem,
+    onRemove: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(1f)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Recycling,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+            Column {
+                Text(
+                    text = item.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = String.format(Locale.getDefault(), "%.3f %s", item.amount, item.unit),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        IconButton(
+            onClick = onRemove,
+            modifier = Modifier.size(32.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = "Remover item",
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 private fun ColetaScreenPreview() {
     ReciconectaTheme {
-        ColetaScreen(
-            onBackClick = { true }
-        )
+        ColetaScreen()
     }
 }
