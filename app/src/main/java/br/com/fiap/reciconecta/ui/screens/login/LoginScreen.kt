@@ -76,33 +76,19 @@ fun LoginScreen(
     Scaffold(
         topBar = {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
+                modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface)
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
-                            .clickable { onBackClick() },
+                        modifier = Modifier.size(40.dp).clip(CircleShape).border(1.dp, MaterialTheme.colorScheme.outline, CircleShape).clickable { onBackClick() },
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = MaterialTheme.colorScheme.onSurface)
                     }
-
                     Spacer(modifier = Modifier.width(16.dp))
-
                     Text(
                         text = stringResource(R.string.login_title),
                         style = MaterialTheme.typography.titleLarge,
@@ -110,33 +96,18 @@ fun LoginScreen(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
-                HorizontalDivider(
-                    thickness = 4.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                HorizontalDivider(thickness = 4.dp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.fillMaxWidth())
             }
         }
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .background(MaterialTheme.colorScheme.background)
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp),
+            modifier = Modifier.fillMaxSize().padding(innerPadding).background(MaterialTheme.colorScheme.background).verticalScroll(rememberScrollState()).padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Logo Original
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp)
-                    .clip(MaterialTheme.shapes.large)
-                    .background(MaterialTheme.colorScheme.primaryContainer)
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxWidth().height(120.dp).clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.primaryContainer).padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
@@ -158,24 +129,12 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Campo Email
             FormLabel(text = stringResource(R.string.label_email))
             OutlinedTextField(
                 value = email,
-                onValueChange = {
-                    email = it
-                    if (emailError != null) emailError = null
-                },
-                placeholder = {
-                    Text(
-                        text = stringResource(R.string.placeholder_email),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .focusRequester(focusRequester),
+                onValueChange = { email = it; if (emailError != null) emailError = null },
+                placeholder = { Text(text = stringResource(R.string.placeholder_email), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
+                modifier = Modifier.fillMaxWidth().height(56.dp).focusRequester(focusRequester),
                 shape = MaterialTheme.shapes.medium,
                 singleLine = true,
                 isError = emailError != null,
@@ -189,35 +148,17 @@ fun LoginScreen(
                 )
             )
             if (emailError != null) {
-                Text(
-                    text = emailError!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 4.dp, top = 4.dp)
-                )
+                Text(text = emailError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.fillMaxWidth().padding(start = 4.dp, top = 4.dp))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Campo Senha
             FormLabel(text = stringResource(R.string.label_password))
             OutlinedTextField(
                 value = senha,
-                onValueChange = {
-                    senha = it
-                    if (senhaError != null) senhaError = null
-                },
-                placeholder = {
-                    Text(
-                        text = stringResource(R.string.placeholder_password),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
+                onValueChange = { senha = it; if (senhaError != null) senhaError = null },
+                placeholder = { Text(text = stringResource(R.string.placeholder_password), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = MaterialTheme.shapes.medium,
                 singleLine = true,
                 isError = senhaError != null,
@@ -238,44 +179,26 @@ fun LoginScreen(
                 )
             )
             if (senhaError != null) {
-                Text(
-                    text = senhaError!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 4.dp, top = 4.dp)
-                )
+                Text(text = senhaError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.fillMaxWidth().padding(start = 4.dp, top = 4.dp))
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Botão Entrar com Validação do DataStore
             Button(
                 onClick = {
                     var isValid = true
-                    if (email.trim().isEmpty()) {
-                        emailError = "E-mail não pode ser vazio"
-                        isValid = false
-                    } else if (!email.contains("@")) {
-                        emailError = "E-mail inválido"
-                        isValid = false
-                    }
+                    if (email.trim().isEmpty()) { emailError = "E-mail não pode ser vazio"; isValid = false }
+                    else if (!email.contains("@")) { emailError = "E-mail inválido"; isValid = false }
 
-                    if (senha.isEmpty()) {
-                        senhaError = "Senha não pode ser vazia"
-                        isValid = false
-                    }
+                    if (senha.isEmpty()) { senhaError = "Senha não pode ser vazia"; isValid = false }
 
                     if (isValid) {
                         scope.launch {
-                            // Busca o perfil salvo no dispositivo
                             val savedProfile = userRepository.userProfile.firstOrNull()
 
                             if (savedProfile == null) {
                                 emailError = "Nenhuma conta encontrada. Cadastre-se primeiro."
                             } else if (savedProfile.email.equals(email.trim(), ignoreCase = true) && savedProfile.senha == senha) {
-                                // E-mail e senha conferem! Avança para a Home
                                 onLoginSuccess()
                             } else {
                                 senhaError = "E-mail ou senha incorretos."
@@ -283,36 +206,19 @@ fun LoginScreen(
                         }
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
+                modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = MaterialTheme.shapes.medium,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                    Icon(imageVector = Icons.Default.Check, contentDescription = null, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(R.string.action_login),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text(text = stringResource(R.string.action_login), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Link para Cadastro
             val registerText = buildAnnotatedString {
                 append(stringResource(R.string.no_account_text))
                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
@@ -325,10 +231,7 @@ fun LoginScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onRegisterClick() }
-                    .padding(vertical = 8.dp)
+                modifier = Modifier.fillMaxWidth().clickable { onRegisterClick() }.padding(vertical = 8.dp)
             )
         }
     }
@@ -337,7 +240,5 @@ fun LoginScreen(
 @Preview(showBackground = true)
 @Composable
 private fun LoginScreenPreview() {
-    ReciconectaTheme {
-        LoginScreen()
-    }
+    ReciconectaTheme { LoginScreen() }
 }

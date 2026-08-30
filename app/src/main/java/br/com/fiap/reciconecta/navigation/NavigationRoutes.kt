@@ -10,7 +10,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
-// Imports das telas com subpacotes
 import br.com.fiap.reciconecta.ui.screens.onboarding.OnboardingScreen
 import br.com.fiap.reciconecta.ui.screens.perfil.criar.CriarPerfilScreen
 import br.com.fiap.reciconecta.ui.screens.perfil.criar.CriarPerfilPJScreen
@@ -34,7 +33,6 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
         navController = navController,
         startDestination = ScreenRoutes.Onboarding.route
     ) {
-        // --- TELA DE ONBOARDING ---
         composable(ScreenRoutes.Onboarding.route) {
             OnboardingScreen(
                 onNavigateToCreateProfile = { profileType ->
@@ -51,7 +49,6 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
             )
         }
 
-        // --- TELA CRIAR PERFIL PF (FÍSICA) ---
         composable(ScreenRoutes.CriarPerfilPF.route) {
             CriarPerfilScreen(
                 isEditMode = false,
@@ -69,7 +66,6 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
             )
         }
 
-        // --- TELA CRIAR PERFIL PJ (EMPRESA) ---
         composable(ScreenRoutes.CriarPerfilPJ.route) {
             CriarPerfilPJScreen(
                 isEditMode = false,
@@ -87,7 +83,6 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
             )
         }
 
-        // --- TELA CRIAR PERFIL COLETOR (CATADOR) ---
         composable(ScreenRoutes.CriarPerfilColetor.route) {
             CriarPerfilColetorScreen(
                 isEditMode = false,
@@ -105,7 +100,6 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
             )
         }
 
-        // Para manter compatibilidade com rota antiga
         composable(ScreenRoutes.CriarPerfil.route) {
             CriarPerfilScreen(
                 isEditMode = false,
@@ -123,7 +117,7 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
             )
         }
 
-        // --- ROTA DINÂMICA PARA EDITAR PERFIL ---
+        // Rota Dinâmica para Edição
         composable("editar_perfil/{tipoPerfil}") { backStackEntry ->
             val tipoPerfil = backStackEntry.arguments?.getString("tipoPerfil") ?: "PF"
 
@@ -131,31 +125,24 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
                 "PJ" -> CriarPerfilPJScreen(
                     isEditMode = true,
                     onBackClick = { navController.popBackStack() },
-                    onLoginClick = {}, // Inativo no modo edição
-                    onSaveProfileClick = { _, _, _, _, _ ->
-                        navController.popBackStack() // Salva e volta para a tela de Perfil
-                    }
+                    onLoginClick = {},
+                    onSaveProfileClick = { _, _, _, _, _ -> navController.popBackStack() }
                 )
                 "COLETOR" -> CriarPerfilColetorScreen(
                     isEditMode = true,
                     onBackClick = { navController.popBackStack() },
-                    onLoginClick = {}, // Inativo no modo edição
-                    onSaveProfileClick = { _, _, _, _, _ ->
-                        navController.popBackStack()
-                    }
+                    onLoginClick = {},
+                    onSaveProfileClick = { _, _, _, _, _ -> navController.popBackStack() }
                 )
-                else -> CriarPerfilScreen( // PF (Pessoa Física) é o padrão
+                else -> CriarPerfilScreen(
                     isEditMode = true,
                     onBackClick = { navController.popBackStack() },
-                    onLoginClick = {}, // Inativo no modo edição
-                    onSaveProfileClick = { _, _, _, _, _ ->
-                        navController.popBackStack()
-                    }
+                    onLoginClick = {},
+                    onSaveProfileClick = { _, _, _, _, _ -> navController.popBackStack() }
                 )
             }
         }
 
-        // --- TELA DE LOGIN ---
         composable(ScreenRoutes.Login.route) {
             LoginScreen(
                 onBackClick = { navController.popBackStack() },
@@ -172,7 +159,6 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
             )
         }
 
-        // --- TELA HOME (IMPACTO) ---
         composable(ScreenRoutes.Home.route) {
             ImpactoScreen(
                 onNavigate = { destination ->
@@ -184,7 +170,6 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
             )
         }
 
-        // --- TELA DE PERFIL ---
         composable(ScreenRoutes.Perfil.route) {
             PerfilScreen(
                 onNavigate = { destination ->
@@ -194,17 +179,14 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
                     }
                 },
                 onEditProfileClick = { tipoPerfil ->
-                    // Redireciona para a rota dinâmica criada acima
                     navController.navigate("editar_perfil/$tipoPerfil")
                 },
                 onLogoutClick = {
-                    // Direciona para o Login e limpa toda a pilha para não voltar logado
                     navController.navigate(ScreenRoutes.Login.route) {
                         popUpTo(0) { inclusive = true }
                     }
                 },
                 onDeleteAccountConfirm = {
-                    // Direciona para o Onboarding após apagar, limpando toda a pilha
                     navController.navigate(ScreenRoutes.Onboarding.route) {
                         popUpTo(0) { inclusive = true }
                     }
@@ -212,7 +194,6 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
             )
         }
 
-        // --- TELA DE COLETAS ---
         composable(ScreenRoutes.Coletas.route) {
             ColetaScreen(
                 viewModel = sharedViewModel,
@@ -222,7 +203,6 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
             )
         }
 
-        // --- TELA DO SCANNER ---
         composable(ScreenRoutes.Scanner.route) {
             ScannerScreen(
                 onBackClick = { navController.popBackStack() },
@@ -240,7 +220,6 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
             )
         }
 
-        // --- TELA DO MAPA ---
         composable(ScreenRoutes.Mapa.route) {
             MapaScreen(
                 viewModel = sharedViewModel,

@@ -21,7 +21,7 @@ fun ProfileBottomActionButtons(
     primaryButtonText: String,
     onPrimaryClick: () -> Unit,
     onLoginClick: () -> Unit = {},
-    isEditMode: Boolean = false, // <-- Adicionamos esta flag
+    isEditMode: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -57,7 +57,6 @@ fun ProfileBottomActionButtons(
             }
         }
 
-        // Se NÃO for modo de edição, mostramos a opção de ir para o Login
         if (!isEditMode) {
             Spacer(modifier = Modifier.height(24.dp))
 
