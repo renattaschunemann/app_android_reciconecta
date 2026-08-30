@@ -37,7 +37,7 @@ android {
     // 💡 BLOCO ADICIONADO PARA CORRIGIR O ERRO DE 16 KB NO ANDROID 17
     packaging {
         jniLibs {
-            useLegacyPackaging = true
+            useLegacyPackaging = false
         }
     }
 }
