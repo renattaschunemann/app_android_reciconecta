@@ -4,6 +4,8 @@ data class UserProfile(
     val nome: String,
     val email: String,
     val telefone: String,
-    val cpf: String,
-    val cep: String
+    val cpfOrCnpj: String,
+    val cep: String,
+    val tipoPerfil: String = "PF", // "PF", "PJ", "COLETOR"
+    val materiais: List<String> = emptyList()
 )

@@ -13,6 +13,8 @@ import androidx.navigation.compose.rememberNavController
 // Imports das telas com subpacotes
 import br.com.fiap.reciconecta.ui.screens.onboarding.OnboardingScreen
 import br.com.fiap.reciconecta.ui.screens.perfil.criar.CriarPerfilScreen
+import br.com.fiap.reciconecta.ui.screens.perfil.criar.CriarPerfilPJScreen
+import br.com.fiap.reciconecta.ui.screens.perfil.criar.CriarPerfilColetorScreen
 import br.com.fiap.reciconecta.ui.screens.perfil.PerfilScreen
 import br.com.fiap.reciconecta.ui.screens.impacto.ImpactoScreen
 import br.com.fiap.reciconecta.ui.screens.coleta.ColetaScreen
@@ -35,8 +37,13 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
         // Tela de Onboarding (Onboarding.kt)
         composable(ScreenRoutes.Onboarding.route) {
             OnboardingScreen(
-                onNavigateToCreateProfile = {
-                    navController.navigate(ScreenRoutes.CriarPerfil.route)
+                onNavigateToCreateProfile = { profileType ->
+                    when (profileType) {
+                        1 -> navController.navigate(ScreenRoutes.CriarPerfilPF.route)
+                        2 -> navController.navigate(ScreenRoutes.CriarPerfilPJ.route)
+                        3 -> navController.navigate(ScreenRoutes.CriarPerfilColetor.route)
+                        else -> navController.navigate(ScreenRoutes.CriarPerfilPF.route)
+                    }
                 },
                 onNavigateToLogin = {
                     navController.navigate(ScreenRoutes.Login.route)
@@ -44,7 +51,46 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
             )
         }
 
-        // --- TELA CRIAR PERFIL ---
+        // --- TELA CRIAR PERFIL PF (FÍSICA) ---
+        composable(ScreenRoutes.CriarPerfilPF.route) {
+            CriarPerfilScreen(
+                onBackClick = { navController.popBackStack() },
+                onLoginClick = { navController.navigate(ScreenRoutes.Login.route) },
+                onCreateProfileClick = { _, _, _, _, _ ->
+                    navController.navigate(ScreenRoutes.Home.route) {
+                        popUpTo(ScreenRoutes.Onboarding.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // --- TELA CRIAR PERFIL PJ (EMPRESA) ---
+        composable(ScreenRoutes.CriarPerfilPJ.route) {
+            CriarPerfilPJScreen(
+                onBackClick = { navController.popBackStack() },
+                onLoginClick = { navController.navigate(ScreenRoutes.Login.route) },
+                onCreateProfileClick = { _, _, _, _, _ ->
+                    navController.navigate(ScreenRoutes.Home.route) {
+                        popUpTo(ScreenRoutes.Onboarding.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // --- TELA CRIAR PERFIL COLETOR (CATADOR) ---
+        composable(ScreenRoutes.CriarPerfilColetor.route) {
+            CriarPerfilColetorScreen(
+                onBackClick = { navController.popBackStack() },
+                onLoginClick = { navController.navigate(ScreenRoutes.Login.route) },
+                onCreateProfileClick = { _, _, _, _, _ ->
+                    navController.navigate(ScreenRoutes.Home.route) {
+                        popUpTo(ScreenRoutes.Onboarding.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // Para manter compatibilidade com rota antiga
         composable(ScreenRoutes.CriarPerfil.route) {
             CriarPerfilScreen(
                 onBackClick = { navController.popBackStack() },

@@ -286,7 +286,7 @@ fun LoginScreen(
                                         nome = "Carlos Eduardo Silva",
                                         email = email,
                                         telefone = "11999999999",
-                                        cpf = "12345678909",
+                                        cpfOrCnpj = "12345678909",
                                         cep = "04101000"
                                     )
                                 )

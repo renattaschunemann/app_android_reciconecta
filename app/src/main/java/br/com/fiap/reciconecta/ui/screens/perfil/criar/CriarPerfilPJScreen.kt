@@ -8,10 +8,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -24,46 +25,41 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.foundation.text.KeyboardActions
-import kotlinx.coroutines.delay
 import br.com.fiap.reciconecta.R
-import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
-import coil.compose.AsyncImage
-import java.io.File
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
-import br.com.fiap.reciconecta.domain.model.UserProfile
 import br.com.fiap.reciconecta.data.local.datastore.UserProfilePreferences
 import br.com.fiap.reciconecta.data.repository.UserRepositoryImpl
+import br.com.fiap.reciconecta.domain.model.UserProfile
+import coil.compose.AsyncImage
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CriarPerfilScreen(
+fun CriarPerfilPJScreen(
     onBackClick: () -> Unit = {},
     onLoginClick: () -> Unit = {},
-    onCreateProfileClick: (nome: String, email: String, telefone: String, cpf: String, bairroCep: String) -> Unit = { _, _, _, _, _ -> }
+    onCreateProfileClick: (nome: String, email: String, telefone: String, cnpj: String, bairroCep: String) -> Unit = { _, _, _, _, _ -> }
 ) {
     val context = LocalContext.current
     val focusRequester = remember { FocusRequester() }
@@ -73,17 +69,24 @@ fun CriarPerfilScreen(
     val userRepository = remember { UserRepositoryImpl(preferences) }
     val savedProfile by userRepository.userProfile.collectAsState(initial = null)
 
-    var nomeCompleto by remember { mutableStateOf("") }
+    var razaoSocial by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var telefone by remember { mutableStateOf("") }
-    var cpf by remember { mutableStateOf("") }
+    var cnpj by remember { mutableStateOf("") }
     var bairroCep by remember { mutableStateOf("") }
+
+    // Seleção múltipla de materiais
+    val materiaisDisponiveis = listOf("Plástico (PET)", "Papel / Papelão", "Metal / Alumínio", "Vidro", "Eletrônicos")
+    val materiaisSelecionados = remember { mutableStateListOf<String>() }
+    var outrosMateriais by remember { mutableStateOf("") }
+    var showOutrosField by remember { mutableStateOf(false) }
 
     var nomeError by remember { mutableStateOf<String?>(null) }
     var emailError by remember { mutableStateOf<String?>(null) }
     var telefoneError by remember { mutableStateOf<String?>(null) }
-    var cpfError by remember { mutableStateOf<String?>(null) }
+    var cnpjError by remember { mutableStateOf<String?>(null) }
     var bairroCepError by remember { mutableStateOf<String?>(null) }
+    var materiaisError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         delay(100)
@@ -93,25 +96,34 @@ fun CriarPerfilScreen(
 
     LaunchedEffect(savedProfile) {
         savedProfile?.let { profile ->
-            nomeCompleto = profile.nome
-            email = profile.email
-            telefone = profile.telefone
-            cpf = profile.cpfOrCnpj
-            bairroCep = profile.cep
+            if (profile.tipoPerfil == "PJ") {
+                razaoSocial = profile.nome
+                email = profile.email
+                telefone = profile.telefone
+                cnpj = profile.cpfOrCnpj
+                bairroCep = profile.cep
+                materiaisSelecionados.clear()
+                profile.materiais.forEach { mat ->
+                    if (mat in materiaisDisponiveis) {
+                        materiaisSelecionados.add(mat)
+                    } else {
+                        showOutrosField = true
+                        outrosMateriais = mat
+                    }
+                }
+            }
         }
     }
 
-    // Estado unificado para a foto de perfil
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
     var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
     var showImagePickerDialog by remember { mutableStateOf(false) }
 
     val scrollState = rememberScrollState()
 
-    // 💡 Criação do arquivo na pasta de cache do app
     fun createImageUri(): Uri {
         val file = File.createTempFile(
-            "profile_photo_${System.currentTimeMillis()}",
+            "profile_pj_photo_${System.currentTimeMillis()}",
             ".jpg",
             context.cacheDir
         )
@@ -119,14 +131,10 @@ fun CriarPerfilScreen(
         return FileProvider.getUriForFile(context, authority, file)
     }
 
-    // Launcher para Galeria
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let { profileImageUri = it }
-    }
+    ) { uri: Uri? -> uri?.let { profileImageUri = it } }
 
-    // Launcher para Câmera
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success: Boolean ->
@@ -135,10 +143,9 @@ fun CriarPerfilScreen(
         }
     }
 
-    // Launcher para pedir permissão em tempo de execução
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
+    ) { isGranted ->
         if (isGranted) {
             val uri = createImageUri()
             tempCameraUri = uri
@@ -146,25 +153,15 @@ fun CriarPerfilScreen(
         }
     }
 
-    // Modal para escolha da origem da imagem
     if (showImagePickerDialog) {
         AlertDialog(
             onDismissRequest = { showImagePickerDialog = false },
-            title = {
-                Text(
-                    text = "Foto de Perfil",
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleMedium
-                )
-            },
-            text = {
-                Text("Escolha como deseja adicionar sua foto:")
-            },
+            title = { Text("Logotipo da Empresa", fontWeight = FontWeight.Bold) },
+            text = { Text("Escolha como deseja adicionar a foto/logotipo:") },
             confirmButton = {
                 TextButton(
                     onClick = {
                         showImagePickerDialog = false
-                        // Checa permissão antes de abrir a câmera
                         if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                             val uri = createImageUri()
                             tempCameraUri = uri
@@ -228,17 +225,15 @@ fun CriarPerfilScreen(
 
                     Spacer(modifier = Modifier.width(16.dp))
 
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = stringResource(R.string.create_profile_title),
+                            text = "Cadastro Empresa",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = stringResource(R.string.profile_option_individual),
+                            text = "Pessoa Jurídica",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -251,14 +246,13 @@ fun CriarPerfilScreen(
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
                         Text(
-                            text = stringResource(R.string.step_badge_text),
+                            text = "Passo 1 de 1",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
-
                 HorizontalDivider(
                     thickness = 4.dp,
                     color = MaterialTheme.colorScheme.primary,
@@ -276,9 +270,6 @@ fun CriarPerfilScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Container do Avatar com exibição direta pela Coil
             Box(
                 modifier = Modifier.size(110.dp),
                 contentAlignment = Alignment.BottomEnd
@@ -301,14 +292,9 @@ fun CriarPerfilScreen(
                             contentScale = ContentScale.Crop
                         )
                     } else {
-                        Text(
-                            text = "👦",
-                            fontSize = 48.sp
-                        )
+                        Text(text = "🏢", fontSize = 48.sp)
                     }
                 }
-
-                // Botão flutuante de câmera
                 Box(
                     modifier = Modifier
                         .size(32.dp)
@@ -319,7 +305,7 @@ fun CriarPerfilScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.PhotoCamera,
-                        contentDescription = "Alterar avatar",
+                        contentDescription = "Alterar logotipo",
                         tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(16.dp)
                     )
@@ -327,23 +313,17 @@ fun CriarPerfilScreen(
             }
 
             Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = stringResource(R.string.avatar_change_instruction),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
+            Text(text = "Logotipo da Empresa", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(modifier = Modifier.height(24.dp))
 
-            FormLabel(text = stringResource(R.string.label_full_name))
+            FormLabel(text = "NOME DA EMPRESA / RAZÃO SOCIAL *")
             FormTextField(
-                value = nomeCompleto,
+                value = razaoSocial,
                 onValueChange = {
-                    nomeCompleto = it
+                    razaoSocial = it
                     if (nomeError != null) nomeError = null
                 },
-                placeholder = stringResource(R.string.placeholder_full_name),
+                placeholder = "Razão social da empresa",
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
                 modifier = Modifier.focusRequester(focusRequester),
                 isError = nomeError != null,
@@ -352,22 +332,40 @@ fun CriarPerfilScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            FormLabel(text = stringResource(R.string.label_email))
+            FormLabel(text = "CNPJ *")
+            FormTextField(
+                value = cnpj,
+                onValueChange = {
+                    val filtered = it.filter { char -> char.isDigit() }
+                    if (filtered.length <= 14) {
+                        cnpj = filtered
+                        if (cnpjError != null) cnpjError = null
+                    }
+                },
+                placeholder = "Ex.: 00000000000000",
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next, keyboardType = KeyboardType.Number),
+                isError = cnpjError != null,
+                errorMessage = cnpjError
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            FormLabel(text = "E-MAIL CORPORATIVO *")
             FormTextField(
                 value = email,
                 onValueChange = {
                     email = it
                     if (emailError != null) emailError = null
                 },
-                placeholder = stringResource(R.string.placeholder_email),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
+                placeholder = "empresa@email.com",
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next, keyboardType = KeyboardType.Email),
                 isError = emailError != null,
                 errorMessage = emailError
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            FormLabel(text = stringResource(R.string.label_phone))
+            FormLabel(text = "TELEFONE DE CONTATO *")
             FormTextField(
                 value = telefone,
                 onValueChange = {
@@ -378,32 +376,14 @@ fun CriarPerfilScreen(
                     }
                 },
                 placeholder = "Ex.: 11999999999",
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next, keyboardType = KeyboardType.Phone),
                 isError = telefoneError != null,
                 errorMessage = telefoneError
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            FormLabel(text = stringResource(R.string.label_cpf))
-            FormTextField(
-                value = cpf,
-                onValueChange = {
-                    val filtered = it.filter { char -> char.isDigit() }
-                    if (filtered.length <= 11) {
-                        cpf = filtered
-                        if (cpfError != null) cpfError = null
-                    }
-                },
-                placeholder = "Ex.: 00000000000",
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
-                isError = cpfError != null,
-                errorMessage = cpfError
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            FormLabel(text = "CEP *")
+            FormLabel(text = "CEP DA EMPRESA *")
             FormTextField(
                 value = bairroCep,
                 onValueChange = {
@@ -414,143 +394,173 @@ fun CriarPerfilScreen(
                     }
                 },
                 placeholder = "Ex.: 04101000",
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done, keyboardType = KeyboardType.Text),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done, keyboardType = KeyboardType.Number),
                 isError = bairroCepError != null,
                 errorMessage = bairroCepError
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            val consentText = buildAnnotatedString {
-                append(stringResource(R.string.create_profile_consent_part1))
-                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
-                    append(stringResource(R.string.terms_of_use))
-                }
-                append(stringResource(R.string.create_profile_consent_part2))
-                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
-                    append(stringResource(R.string.privacy_policy))
-                }
-                append(".")
-            }
-
-            Text(
-                text = consentText,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
+            // Caixa de seleção múltipla de materiais
+            FormLabel(text = "MATERIAIS QUE A EMPRESA TRABALHA *")
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-            )
+                    .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.medium)
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(8.dp)
+            ) {
+                materiaisDisponiveis.forEach { material ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                if (material in materiaisSelecionados) {
+                                    materiaisSelecionados.remove(material)
+                                } else {
+                                    materiaisSelecionados.add(material)
+                                }
+                                if (materiaisError != null) materiaisError = null
+                            }
+                            .padding(vertical = 8.dp, horizontal = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = material in materiaisSelecionados,
+                            onCheckedChange = {
+                                if (material in materiaisSelecionados) {
+                                    materiaisSelecionados.remove(material)
+                                } else {
+                                    materiaisSelecionados.add(material)
+                                }
+                                if (materiaisError != null) materiaisError = null
+                            }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = material, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            showOutrosField = !showOutrosField
+                        }
+                        .padding(vertical = 8.dp, horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = showOutrosField,
+                        onCheckedChange = { showOutrosField = it }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = "Outros", style = MaterialTheme.typography.bodyMedium)
+                }
+
+                if (showOutrosField) {
+                    OutlinedTextField(
+                        value = outrosMateriais,
+                        onValueChange = {
+                            outrosMateriais = it
+                            if (materiaisError != null) materiaisError = null
+                        },
+                        placeholder = { Text("Digite os materiais separados por vírgula") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    )
+                }
+            }
+            if (materiaisError != null) {
+                Text(
+                    text = materiaisError!!,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             Button(
                 onClick = {
                     var isValid = true
 
-                    // Validação Nome Completo
-                    if (nomeCompleto.trim().isEmpty()) {
-                        nomeError = "Nome completo não pode ser vazio"
+                    if (razaoSocial.trim().isEmpty()) {
+                        nomeError = "Razão social não pode ser vazia"
                         isValid = false
-                    } else if (nomeCompleto.trim().split(" ").size < 2) {
-                        nomeError = "Digite seu nome completo (Nome e Sobrenome)"
-                        isValid = false
-                    } else {
-                        nomeError = null
                     }
 
-                    // Validação E-mail
                     val emailTrimmed = email.trim()
                     if (emailTrimmed.isEmpty()) {
                         emailError = "E-mail não pode ser vazio"
                         isValid = false
                     } else if (!emailTrimmed.contains("@") || !emailTrimmed.contains(".com")) {
-                        emailError = "E-mail inválido (deve conter @ e .com)"
+                        emailError = "E-mail inválido"
                         isValid = false
-                    } else {
-                        emailError = null
                     }
 
-                    // Validação Telefone
-                    val phoneDigits = telefone.filter { it.isDigit() }
-                    if (telefone.trim().isEmpty()) {
-                        telefoneError = "Telefone não pode ser vazio"
+                    if (cnpj.trim().length != 14) {
+                        cnpjError = "CNPJ inválido (deve conter exatamente 14 dígitos)"
                         isValid = false
-                    } else if (phoneDigits.length < 10 || phoneDigits.length > 11) {
-                        telefoneError = "Telefone inválido (deve conter o DDD e 10 ou 11 dígitos)"
-                        isValid = false
-                    } else {
-                        telefoneError = null
                     }
 
-                    // Validação CPF
-                    val cpfDigits = cpf.filter { it.isDigit() }
-                    if (cpf.trim().isEmpty()) {
-                        cpfError = "CPF não pode ser vazio"
+                    if (telefone.trim().length < 10) {
+                        telefoneError = "Telefone inválido"
                         isValid = false
-                    } else if (cpfDigits.length != 11) {
-                        cpfError = "CPF inválido (deve conter exatamente 11 dígitos)"
-                        isValid = false
-                    } else {
-                        cpfError = null
                     }
 
-                    // Validação CEP
-                    val cepDigits = bairroCep.filter { it.isDigit() }
-                    if (bairroCep.trim().isEmpty()) {
-                        bairroCepError = "CEP não pode ser vazio"
+                    if (bairroCep.trim().length != 8) {
+                        bairroCepError = "CEP inválido (deve conter exatamente 8 dígitos)"
                         isValid = false
-                    } else if (cepDigits.length != 8) {
-                        bairroCepError = "CEP inválido (deve conter exatamente 8 números)"
+                    }
+
+                    val listaMateriaisFinal = materiaisSelecionados.toMutableList()
+                    if (showOutrosField && outrosMateriais.trim().isNotEmpty()) {
+                        listaMateriaisFinal.addAll(outrosMateriais.split(",").map { it.trim() })
+                    }
+
+                    if (listaMateriaisFinal.isEmpty()) {
+                        materiaisError = "Selecione pelo menos um tipo de material"
                         isValid = false
-                    } else {
-                        bairroCepError = null
                     }
 
                     if (isValid) {
                         scope.launch {
                             userRepository.saveProfile(
                                 UserProfile(
-                                    nome = nomeCompleto,
+                                    nome = razaoSocial,
                                     email = email,
                                     telefone = telefone,
-                                    cpfOrCnpj = cpf,
+                                    cpfOrCnpj = cnpj,
                                     cep = bairroCep,
-                                    tipoPerfil = "PF"
+                                    tipoPerfil = "PJ",
+                                    materiais = listaMateriaisFinal
                                 )
                             )
-                            onCreateProfileClick(nomeCompleto, email, telefone, cpf, bairroCep)
+                            onCreateProfileClick(razaoSocial, email, telefone, cnpj, bairroCep)
                         }
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ),
                 shape = MaterialTheme.shapes.medium
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
+                    Icon(imageVector = Icons.Default.Check, contentDescription = null, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(R.string.create_profile_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text("Criar Perfil Empresa", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 }
             }
 
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Link para Login
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -563,105 +573,18 @@ fun CriarPerfilScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = stringResource(R.string.already_has_account_text),
+                    text = "Já possui uma conta? ",
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color(0xFF2D2D2D)
                 )
-                Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = stringResource(R.string.login_here),
+                    text = "Faça Login",
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF1B4332)
                 )
             }
         }
-    }
-}
-
-@Composable
-fun FormLabel(text: String) {
-    val annotatedString = buildAnnotatedString {
-        val parts = text.split("*")
-        append(parts[0])
-        if (text.contains("*")) {
-            withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.error)) {
-                append("*")
-            }
-        }
-    }
-
-    Text(
-        text = annotatedString,
-        style = MaterialTheme.typography.labelLarge,
-        fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 6.dp)
-    )
-}
-
-@Composable
-fun FormTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    modifier: Modifier = Modifier,
-    isError: Boolean = false,
-    errorMessage: String? = null
-) {
-    val focusManager = LocalFocusManager.current
-    Column(modifier = Modifier.fillMaxWidth()) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = {
-                Text(
-                    text = placeholder,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                )
-            },
-            modifier = modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = MaterialTheme.shapes.medium,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                errorBorderColor = MaterialTheme.colorScheme.error
-            ),
-            singleLine = true,
-            isError = isError,
-            keyboardOptions = keyboardOptions,
-            keyboardActions = KeyboardActions(
-                onNext = {
-                    focusManager.moveFocus(FocusDirection.Next)
-                },
-                onDone = {
-                    focusManager.clearFocus()
-                }
-            )
-        )
-        if (isError && errorMessage != null) {
-            Text(
-                text = errorMessage,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(start = 4.dp, top = 4.dp)
-            )
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun CriarPerfilScreenPreview() {
-    ReciconectaTheme {
-        CriarPerfilScreen()
     }
 }

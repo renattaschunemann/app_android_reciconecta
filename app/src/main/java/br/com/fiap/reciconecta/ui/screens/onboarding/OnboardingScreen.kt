@@ -41,7 +41,7 @@ import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
 @Composable
 fun OnboardingScreen(
     modifier: Modifier = Modifier,
-    onNavigateToCreateProfile: () -> Unit = {},
+    onNavigateToCreateProfile: (profileType: Int) -> Unit = {},
     onNavigateToLogin: () -> Unit = {}
 ) {
     var selectedOption by remember { mutableStateOf(3) }
@@ -98,7 +98,7 @@ fun OnboardingScreen(
                 isSelected = selectedOption == 1,
                 onClick = {
                     selectedOption = 1
-                    onNavigateToCreateProfile()
+                    onNavigateToCreateProfile(1)
                 }
             )
             Spacer(modifier = Modifier.height(12.dp))
@@ -109,7 +109,7 @@ fun OnboardingScreen(
                 isSelected = selectedOption == 2,
                 onClick = {
                     selectedOption = 2
-                    onNavigateToCreateProfile()
+                    onNavigateToCreateProfile(2)
                 }
             )
             Spacer(modifier = Modifier.height(12.dp))
@@ -124,7 +124,7 @@ fun OnboardingScreen(
                 selectedIconBgColor = OrangeIconBackground,
                 onClick = {
                     selectedOption = 3
-                    onNavigateToCreateProfile()
+                    onNavigateToCreateProfile(3)
                 }
             )
         }
