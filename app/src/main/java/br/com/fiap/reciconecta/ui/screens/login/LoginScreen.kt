@@ -45,6 +45,7 @@ import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,7 +69,7 @@ fun LoginScreen(
     var senhaError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
-        delay(100)
+        delay(100.milliseconds)
         focusRequester.requestFocus()
         keyboardController?.show()
     }
