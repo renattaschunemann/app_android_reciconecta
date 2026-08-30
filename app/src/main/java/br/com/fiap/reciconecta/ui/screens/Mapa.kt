@@ -27,6 +27,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.style.TextAlign
 import br.com.fiap.reciconecta.ui.viewmodels.ColetaViewModel
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -107,21 +108,30 @@ fun MapaScreen(
                     modifier = Modifier.fillMaxSize(),
                     cameraPositionState = cameraPositionState
                 ) {
+                    // Encontra o ID do catador mais próximo entre os filtrados
+                    val catadorMaisProximoId = catadoresFiltrados.minByOrNull { it.distanciaKm }?.id
+
                     catadoresFiltrados.forEach { catador ->
-                        // Criamos um estado individual para cada marcador
                         val markerState = remember(catador.id) {
                             MarkerState(position = LatLng(catador.lat, catador.lng))
                         }
 
-                        // Força o balão com o nome e a distância a aparecer aberto automaticamente
                         LaunchedEffect(Unit) {
                             markerState.showInfoWindow()
                         }
 
+                        // Se for o mais próximo, usamos a cor AZUL; caso contrário, a padrão (VERMELHA)
+                        val markerColor = if (catador.id == catadorMaisProximoId) {
+                            BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
+                        } else {
+                            BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
+                        }
+
                         Marker(
                             state = markerState,
-                            title = catador.nome,
-                            snippet = "📍 ${catador.distanciaKm} km • ⭐ ${catador.avaliacao}"
+                            title = if (catador.id == catadorMaisProximoId) "⭐ ${catador.nome} (Mais Próximo)" else catador.nome,
+                            snippet = "📍 ${catador.distanciaKm} km • ⭐ ${catador.avaliacao}",
+                            icon = markerColor
                         )
                     }
                 }
