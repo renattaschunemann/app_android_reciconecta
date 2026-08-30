@@ -11,28 +11,30 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.fiap.reciconecta.R
+import br.com.fiap.reciconecta.data.local.datastore.RecyclingPreferences
+import br.com.fiap.reciconecta.data.local.datastore.UserProfilePreferences
+import br.com.fiap.reciconecta.data.repository.RecyclingRepositoryImpl
+import br.com.fiap.reciconecta.data.repository.UserRepositoryImpl
+import br.com.fiap.reciconecta.domain.model.RecyclingStats
 import br.com.fiap.reciconecta.ui.components.AppBottomBar
 import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
-import androidx.compose.material.icons.filled.BarChart
-
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import br.com.fiap.reciconecta.data.local.datastore.UserProfilePreferences
-import br.com.fiap.reciconecta.data.repository.UserRepositoryImpl
+import java.util.Locale
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +46,14 @@ fun PerfilScreen(
     val preferences = remember { UserProfilePreferences(context) }
     val userRepository = remember { UserRepositoryImpl(preferences) }
     val userProfile by userRepository.userProfile.collectAsState(initial = null)
+
+    // Acessa o total de kg reciclados dinamicamente do DataStore
+    val recyclingPref = remember { RecyclingPreferences(context) }
+    val recyclingRepository = remember { RecyclingRepositoryImpl(recyclingPref) }
+    val recyclingStats by recyclingRepository.recyclingStats.collectAsState(initial = RecyclingStats(0f, 0f, 0f))
+    
+    val totalWeight = recyclingStats.plasticKg + recyclingStats.paperKg + recyclingStats.metalKg
+    val formattedTotalWeight = String.format(Locale.getDefault(), "%.1f", totalWeight)
 
     Scaffold(
         bottomBar = {
@@ -79,8 +89,14 @@ fun PerfilScreen(
                             .background(Color(0xFFEBF3EF)),
                         contentAlignment = Alignment.Center
                     ) {
+                        // Emoji muda dinamicamente baseado no perfil recém-criado
+                        val avatar = when (userProfile?.tipoPerfil) {
+                            "PJ" -> "🏢"
+                            "COLETOR" -> "👷"
+                            else -> "👤"
+                        }
                         Text(
-                            text = "👷",
+                            text = avatar,
                             fontSize = 48.sp
                         )
                     }
@@ -104,6 +120,13 @@ fun PerfilScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Exibe o perfil correspondente
+                val profileTypeLabel = when (userProfile?.tipoPerfil) {
+                    "PJ" -> "Perfil PJ (Empresa)"
+                    "COLETOR" -> "Perfil do Catador"
+                    else -> "Perfil Pessoa Física"
+                }
+
                 Text(
                     text = userProfile?.nome ?: "Carlos Eduardo Silva",
                     style = MaterialTheme.typography.titleLarge,
@@ -112,7 +135,14 @@ fun PerfilScreen(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = userProfile?.email ?: stringResource(R.string.profile_cooperative_subtitle),
+                    text = profileTypeLabel,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = userProfile?.email ?: "usuario@email.com",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -153,20 +183,22 @@ fun PerfilScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // Exibindo estatísticas limpas para o novo cadastro
+                val collectionsCount = if (totalWeight > 0f) "1" else "0"
                 Row(
                     modifier = Modifier.fillMaxWidth(0.9f),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    ProfileStatItem(value = "248", label = stringResource(R.string.stat_collections))
-                    ProfileStatItem(value = "1.342", label = stringResource(R.string.stat_weight))
-                    ProfileStatItem(value = "2021", label = stringResource(R.string.stat_since))
+                    ProfileStatItem(value = collectionsCount, label = stringResource(R.string.stat_collections))
+                    ProfileStatItem(value = "$formattedTotalWeight kg", label = stringResource(R.string.stat_weight))
+                    ProfileStatItem(value = "2026", label = stringResource(R.string.stat_since))
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
                 //BOTÃO: Redireciona para a tela de Impacto
                 OutlinedButton(
-                    onClick = { onNavigate("inicio") }, // "inicio" é a rota da Impacto.kt
+                    onClick = { onNavigate("inicio") }, 
                     shape = MaterialTheme.shapes.medium,
                     border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
                         width = 1.dp,
@@ -184,7 +216,7 @@ fun PerfilScreen(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.BarChart, // Ou Icons.Default.Eco
+                            imageVector = Icons.Default.BarChart, 
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         )
@@ -224,8 +256,10 @@ fun PerfilScreen(
 
                 Spacer(modifier = Modifier.height(28.dp))
 
+                // Exibe os materiais selecionados no cadastro dinamicamente
+                val materialsTitle = if (userProfile?.tipoPerfil == "PJ") "Materiais de Interesse" else stringResource(R.string.label_materials_accepted)
                 Text(
-                    text = stringResource(R.string.label_materials_accepted),
+                    text = materialsTitle,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -236,11 +270,24 @@ fun PerfilScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    MaterialTag(name = stringResource(R.string.item_pet), icon = Icons.Default.Recycling)
-                    MaterialTag(name = stringResource(R.string.item_cardboard), icon = Icons.Default.Inventory)
-                    MaterialTag(name = stringResource(R.string.tag_metal), icon = Icons.Default.Build)
-                    MaterialTag(name = stringResource(R.string.tag_glass), icon = Icons.Default.LocalDrink)
-                    MaterialTag(name = stringResource(R.string.tag_electronics), icon = Icons.Default.Devices)
+                    val userMaterials = userProfile?.materiais ?: emptyList()
+                    if (userMaterials.isEmpty()) {
+                        // Fallback padrão se não houver materiais cadastrados
+                        MaterialTag(name = "Plástico (PET)", icon = Icons.Default.Recycling)
+                        MaterialTag(name = "Papel / Papelão", icon = Icons.Default.Inventory)
+                    } else {
+                        userMaterials.forEach { material ->
+                            val icon = when {
+                                material.lowercase().contains("plast") || material.lowercase().contains("pet") -> Icons.Default.Recycling
+                                material.lowercase().contains("papel") || material.lowercase().contains("card") -> Icons.Default.Inventory
+                                material.lowercase().contains("metal") || material.lowercase().contains("alum") -> Icons.Default.Build
+                                material.lowercase().contains("vidro") -> Icons.Default.LocalDrink
+                                material.lowercase().contains("eletr") -> Icons.Default.Devices
+                                else -> Icons.Default.Recycling
+                            }
+                            MaterialTag(name = material, icon = icon)
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(28.dp))
@@ -253,21 +300,22 @@ fun PerfilScreen(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
 
-                ReviewCard(
-                    initial = "M",
-                    name = "Maria Santos",
-                    timeAgo = stringResource(R.string.review_time_days),
-                    rating = 5,
-                    comment = "Pontual e atencioso, chegou no horário combinado!"
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                ReviewCard(
-                    initial = "J",
-                    name = "João Oliveira",
-                    timeAgo = stringResource(R.string.review_time_weeks),
-                    rating = 5,
-                    comment = "Excelente serviço, recomendo a todos."
-                )
+                // Limpa os registros de avaliações antigas simulando novo usuário
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), MaterialTheme.shapes.medium)
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Nenhuma avaliação recente disponível.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
                 Spacer(modifier = Modifier.height(32.dp))
             }
         }
@@ -342,89 +390,6 @@ private fun MaterialTag(name: String, icon: ImageVector) {
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface
         )
-    }
-}
-
-@Composable
-private fun ReviewCard(
-    initial: String,
-    name: String,
-    timeAgo: String,
-    rating: Int,
-    comment: String
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 1.dp
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), MaterialTheme.shapes.medium)
-                .padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFFEBF3EF)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = initial,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = name,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                Text(
-                    text = timeAgo,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                for (i in 1..5) {
-                    Icon(
-                        imageVector = if (i <= rating) Icons.Default.Star else Icons.Default.StarBorder,
-                        contentDescription = null,
-                        tint = Color(0xFFF59E0B),
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = comment,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
     }
 }
 

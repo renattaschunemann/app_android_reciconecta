@@ -24,17 +24,17 @@ class RecyclingPreferences(
     val recyclingStats: Flow<RecyclingStats>
         get() = context.recyclingDataStore.data.map { preferences ->
             RecyclingStats(
-                plasticKg = preferences[PLASTIC_KEY] ?: 71.000f,
-                paperKg = preferences[PAPER_KEY] ?: 22.000f,
-                metalKg = preferences[METAL_KEY] ?: 11.000f
+                plasticKg = preferences[PLASTIC_KEY] ?: 0f,
+                paperKg = preferences[PAPER_KEY] ?: 0f,
+                metalKg = preferences[METAL_KEY] ?: 0f
             )
         }
 
     suspend fun addMaterial(plastic: Float, paper: Float, metal: Float) {
         context.recyclingDataStore.edit { preferences ->
-            val currentPlastic = preferences[PLASTIC_KEY] ?: 71.000f
-            val currentPaper = preferences[PAPER_KEY] ?: 22.000f
-            val currentMetal = preferences[METAL_KEY] ?: 11.000f
+            val currentPlastic = preferences[PLASTIC_KEY] ?: 0f
+            val currentPaper = preferences[PAPER_KEY] ?: 0f
+            val currentMetal = preferences[METAL_KEY] ?: 0f
             preferences[PLASTIC_KEY] = currentPlastic + plastic
             preferences[PAPER_KEY] = currentPaper + paper
             preferences[METAL_KEY] = currentMetal + metal

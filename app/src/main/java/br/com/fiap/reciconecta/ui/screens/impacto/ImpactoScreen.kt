@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import br.com.fiap.reciconecta.data.local.datastore.RecyclingPreferences
 import br.com.fiap.reciconecta.data.repository.RecyclingRepositoryImpl
 import br.com.fiap.reciconecta.domain.model.RecyclingStats
+import androidx.compose.ui.text.style.TextAlign
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,7 +48,7 @@ fun ImpactoScreen(
     val context = LocalContext.current
     val preferences = remember { RecyclingPreferences(context) }
     val recyclingRepository = remember { RecyclingRepositoryImpl(preferences) }
-    val stats by recyclingRepository.recyclingStats.collectAsState(initial = RecyclingStats(71f, 22f, 11f))
+    val stats by recyclingRepository.recyclingStats.collectAsState(initial = RecyclingStats(0f, 0f, 0f))
 
     val totalWeight = stats.plasticKg + stats.paperKg + stats.metalKg
     val co2Avoided = totalWeight * 0.36f
@@ -165,36 +166,52 @@ fun ImpactoScreen(
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(130.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.SpaceBetween
+                    if (totalWeight == 0f) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(130.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            for (i in 0..3) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(1.dp)
-                                        .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
-                                )
-                            }
+                            Text(
+                                text = "O histórico de reciclagem aparecerá aqui após as primeiras coletas.",
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                         }
-
-                        Row(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalArrangement = Arrangement.SpaceAround,
-                            verticalAlignment = Alignment.Bottom
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(130.dp)
                         ) {
-                            ChartBar(month = "Mar", heightFraction = 0.4f)
-                            ChartBar(month = "Abr", heightFraction = 0.55f)
-                            ChartBar(month = "Mai", heightFraction = 0.7f)
-                            ChartBar(month = "Jun", heightFraction = 0.5f)
-                            ChartBar(month = "Jul", heightFraction = 0.8f)
-                            ChartBar(month = "Ago", heightFraction = 0.9f)
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                for (i in 0..3) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(1.dp)
+                                            .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+                                    )
+                                }
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalArrangement = Arrangement.SpaceAround,
+                                verticalAlignment = Alignment.Bottom
+                            ) {
+                                ChartBar(month = "Mar", heightFraction = 0.4f)
+                                ChartBar(month = "Abr", heightFraction = 0.55f)
+                                ChartBar(month = "Mai", heightFraction = 0.7f)
+                                ChartBar(month = "Jun", heightFraction = 0.5f)
+                                ChartBar(month = "Jul", heightFraction = 0.8f)
+                                ChartBar(month = "Ago", heightFraction = 0.9f)
+                            }
                         }
                     }
                 }
