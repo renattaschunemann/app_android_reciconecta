@@ -78,6 +78,7 @@ fun LoginScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .statusBarsPadding()
                     .background(MaterialTheme.colorScheme.surface)
             ) {
                 Row(

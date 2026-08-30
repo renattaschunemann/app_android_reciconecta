@@ -61,7 +61,7 @@ fun ColetaScreen(
         bottomBar = {
             // Rodapé com os botões: Adicionar Item e Confirmar Coleta (Indo para o Mapa)
             Surface(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
                 color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 16.dp
             ) {

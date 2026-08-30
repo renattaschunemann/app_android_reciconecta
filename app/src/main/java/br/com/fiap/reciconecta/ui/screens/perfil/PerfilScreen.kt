@@ -70,6 +70,7 @@ fun PerfilScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .statusBarsPadding()
                 .background(Color(0xFFF7F9F8))
                 .verticalScroll(scrollState)
         ) {
