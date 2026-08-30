@@ -75,7 +75,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.2.0")
 
     // CameraX (Para exibir a câmera e capturar os quadros)
-    val cameraxVersion = "1.3.1"
+    val cameraxVersion = "1.4.1"
     implementation("androidx.camera:camera-core:$cameraxVersion")
     implementation("androidx.camera:camera-camera2:$cameraxVersion")
     implementation("androidx.camera:camera-lifecycle:$cameraxVersion")

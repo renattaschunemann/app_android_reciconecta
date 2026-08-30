@@ -10,7 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,17 +25,19 @@ import androidx.compose.ui.unit.sp
 import br.com.fiap.reciconecta.R
 import br.com.fiap.reciconecta.ui.components.AppBottomBar
 import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
+import androidx.compose.material.icons.filled.BarChart
+
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import br.com.fiap.reciconecta.data.local.datastore.UserProfilePreferences
 import br.com.fiap.reciconecta.data.repository.UserRepositoryImpl
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PerfilScreen(
-    onNavigate: (String) -> Unit = {},
-    onEditProfileClick: (String) -> Unit = {}, // Assinatura corrigida
-    onLogoutClick: () -> Unit = {},
-    onDeleteAccountConfirm: () -> Unit = {}
+    onNavigate: (String) -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
@@ -43,60 +45,7 @@ fun PerfilScreen(
     val userRepository = remember { UserRepositoryImpl(preferences) }
     val userProfile by userRepository.userProfile.collectAsState(initial = null)
 
-    var menuExpanded by remember { mutableStateOf(false) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
-
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(text = "") },
-                navigationIcon = {
-                    Box {
-                        IconButton(onClick = { menuExpanded = true }) {
-                            Icon(
-                                imageVector = Icons.Default.Menu,
-                                contentDescription = "Menu de Opções"
-                            )
-                        }
-
-                        DropdownMenu(
-                            expanded = menuExpanded,
-                            onDismissRequest = { menuExpanded = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("Editar Perfil") },
-                                onClick = {
-                                    menuExpanded = false
-                                    val tipo = userProfile?.tipoPerfil ?: "PF"
-                                    onEditProfileClick(tipo)
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Sair") },
-                                onClick = {
-                                    menuExpanded = false
-                                    onLogoutClick()
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = {
-                                    Text("Excluir Conta", color = MaterialTheme.colorScheme.error)
-                                },
-                                onClick = {
-                                    menuExpanded = false
-                                    showDeleteDialog = true
-                                }
-                            )
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
-        },
         bottomBar = {
             AppBottomBar(
                 currentRoute = "perfil",
@@ -115,7 +64,7 @@ fun PerfilScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color.White)
-                    .padding(top = 8.dp, bottom = 24.dp),
+                    .padding(top = 32.dp, bottom = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
@@ -215,8 +164,9 @@ fun PerfilScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
+                //BOTÃO: Redireciona para a tela de Impacto
                 OutlinedButton(
-                    onClick = { onNavigate("inicio") },
+                    onClick = { onNavigate("inicio") }, // "inicio" é a rota da Impacto.kt
                     shape = MaterialTheme.shapes.medium,
                     border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
                         width = 1.dp,
@@ -234,7 +184,7 @@ fun PerfilScreen(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.BarChart,
+                            imageVector = Icons.Default.BarChart, // Ou Icons.Default.Eco
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         )
@@ -321,61 +271,6 @@ fun PerfilScreen(
                 Spacer(modifier = Modifier.height(32.dp))
             }
         }
-    }
-
-    if (showDeleteDialog) {
-        var isChecked by remember { mutableStateOf(false) }
-
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = {
-                Text(
-                    text = "Atenção",
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.error
-                )
-            },
-            text = {
-                Column {
-                    Text("Esta ação é permanente e não poderá ser desfeita.")
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Checkbox(
-                            checked = isChecked,
-                            onCheckedChange = { isChecked = it }
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Realmente Deseja Excluir Sua conta e Seus dados da Aplicação?",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showDeleteDialog = false
-                        onDeleteAccountConfirm()
-                    },
-                    enabled = isChecked,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError
-                    )
-                ) {
-                    Text("Confirmar", fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancelar")
-                }
-            }
-        )
     }
 }
 
