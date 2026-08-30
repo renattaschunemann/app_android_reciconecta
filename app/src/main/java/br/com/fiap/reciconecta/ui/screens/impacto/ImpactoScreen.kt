@@ -33,6 +33,8 @@ import androidx.compose.runtime.remember
 import br.com.fiap.reciconecta.data.local.datastore.RecyclingPreferences
 import br.com.fiap.reciconecta.data.repository.RecyclingRepositoryImpl
 import br.com.fiap.reciconecta.domain.model.RecyclingStats
+import br.com.fiap.reciconecta.data.local.datastore.UserProfilePreferences
+import br.com.fiap.reciconecta.data.repository.UserRepositoryImpl
 import androidx.compose.ui.text.style.TextAlign
 import java.util.Locale
 
@@ -49,6 +51,10 @@ fun ImpactoScreen(
     val preferences = remember { RecyclingPreferences(context) }
     val recyclingRepository = remember { RecyclingRepositoryImpl(preferences) }
     val stats by recyclingRepository.recyclingStats.collectAsState(initial = RecyclingStats(0f, 0f, 0f))
+
+    val userPreferences = remember { UserProfilePreferences(context) }
+    val userRepository = remember { UserRepositoryImpl(userPreferences) }
+    val userProfile by userRepository.userProfile.collectAsState(initial = null)
 
     val totalWeight = stats.plasticKg + stats.paperKg + stats.metalKg
     val co2Avoided = totalWeight * 0.36f
@@ -137,30 +143,37 @@ fun ImpactoScreen(
 
             val maxWeight = if (totalWeight > 0f) totalWeight else 1f
 
-            MaterialProgressItem(
-                name = stringResource(R.string.material_plastic),
-                weight = stats.plasticKg,
-                color = orangeBrandColor,
-                progress = stats.plasticKg / maxWeight
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            MaterialProgressItem(
-                name = stringResource(R.string.material_paper),
-                weight = stats.paperKg,
-                color = MaterialTheme.colorScheme.primary,
-                progress = stats.paperKg / maxWeight
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            MaterialProgressItem(
-                name = stringResource(R.string.tag_metal),
-                weight = stats.metalKg,
-                color = Color(0xFF52B788),
-                progress = stats.metalKg / maxWeight
-            )
+            val userMaterials = userProfile?.materiais ?: emptyList()
+            if (userMaterials.isEmpty()) {
+                Text(
+                    text = "Nenhum material selecionado no perfil.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            } else {
+                userMaterials.forEachIndexed { index, material ->
+                    val weight = when {
+                        material.lowercase().contains("plast") || material.lowercase().contains("pet") -> stats.plasticKg
+                        material.lowercase().contains("papel") || material.lowercase().contains("card") -> stats.paperKg
+                        material.lowercase().contains("metal") || material.lowercase().contains("alum") -> stats.metalKg
+                        else -> 0f
+                    }
+                    val color = when (index % 3) {
+                        0 -> orangeBrandColor
+                        1 -> MaterialTheme.colorScheme.primary
+                        else -> Color(0xFF52B788)
+                    }
+                    MaterialProgressItem(
+                        name = material,
+                        weight = weight,
+                        color = color,
+                        progress = if (totalWeight > 0f) weight / maxWeight else 0f
+                    )
+                    if (index < userMaterials.size - 1) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(40.dp))
         }
