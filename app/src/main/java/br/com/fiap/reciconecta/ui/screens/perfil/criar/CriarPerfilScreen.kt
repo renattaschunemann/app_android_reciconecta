@@ -61,6 +61,7 @@ import br.com.fiap.reciconecta.data.repository.UserRepositoryImpl
 @Composable
 fun CriarPerfilScreen(
     onBackClick: () -> Unit = {},
+    onLoginClick: () -> Unit = {},
     onCreateProfileClick: (nome: String, email: String, telefone: String, cpf: String, bairroCep: String) -> Unit = { _, _, _, _, _ -> }
 ) {
     val context = LocalContext.current
@@ -547,6 +548,26 @@ fun CriarPerfilScreen(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            val loginText = buildAnnotatedString {
+                append(stringResource(R.string.already_has_account_text))
+                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
+                    append(stringResource(R.string.login_here))
+                }
+            }
+
+            Text(
+                text = loginText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onLoginClick() }
+                    .padding(vertical = 8.dp)
+            )
         }
     }
 }

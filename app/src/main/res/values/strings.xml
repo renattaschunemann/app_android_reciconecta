@@ -95,6 +95,17 @@
     <string name="material_plastic">Plástico (PET)</string>
     <string name="material_paper">Papel / Papelão</string>
     <string name="action_recycle_now">Reciclar Agora</string>
+    <!-- Login Screen -->
+    <string name="login_title">Acessar Conta</string>
+    <string name="login_subtitle">Entre para continuar ajudando o planeta</string>
+    <string name="label_password">SENHA *</string>
+    <string name="placeholder_password">Digite sua senha</string>
+    <string name="action_login">Entrar</string>
+    <string name="no_account_text">Não possui uma conta? </string>
+    <string name="register_here">Cadastre-se</string>
+    <string name="already_has_account_text">Já possui uma conta? </string>
+    <string name="login_here">Faça Login</string>
+
     <string name="in_cio">Início</string>
     <string name="coletas">Coletas</string>
     <string name="perfil">Perfil</string>

@@ -12,6 +12,7 @@ import br.com.fiap.reciconecta.ui.screens.impacto.ImpactoScreen
 import br.com.fiap.reciconecta.ui.screens.coleta.ColetaScreen
 import br.com.fiap.reciconecta.ui.screens.mapa.MapaScreen
 import br.com.fiap.reciconecta.ui.screens.scanner.ScannerScreen
+import br.com.fiap.reciconecta.ui.screens.login.LoginScreen
 
 @Composable
 fun NavigationRoutes(
@@ -28,6 +29,9 @@ fun NavigationRoutes(
             OnboardingScreen(
                 onNavigateToCreateProfile = {
                     navController.navigate(ScreenRoutes.CriarPerfil.route)
+                },
+                onNavigateToLogin = {
+                    navController.navigate(ScreenRoutes.Login.route)
                 }
             )
         }
@@ -35,7 +39,24 @@ fun NavigationRoutes(
         composable(ScreenRoutes.CriarPerfil.route) {
             CriarPerfilScreen(
                 onBackClick = { navController.popBackStack() },
+                onLoginClick = { navController.navigate(ScreenRoutes.Login.route) },
                 onCreateProfileClick = { _, _, _, _, _ ->
+                    navController.navigate(ScreenRoutes.Home.route) {
+                        popUpTo(ScreenRoutes.Onboarding.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+        // Tela de Login (LoginScreen.kt)
+        composable(ScreenRoutes.Login.route) {
+            LoginScreen(
+                onBackClick = { navController.popBackStack() },
+                onRegisterClick = {
+                    navController.navigate(ScreenRoutes.Onboarding.route) {
+                        popUpTo(ScreenRoutes.Onboarding.route) { inclusive = true }
+                    }
+                },
+                onLoginSuccess = {
                     navController.navigate(ScreenRoutes.Home.route) {
                         popUpTo(ScreenRoutes.Onboarding.route) { inclusive = true }
                     }

@@ -41,7 +41,8 @@ import br.com.fiap.reciconecta.ui.theme.ReciconectaTheme
 @Composable
 fun OnboardingScreen(
     modifier: Modifier = Modifier,
-    onNavigateToCreateProfile: () -> Unit = {}
+    onNavigateToCreateProfile: () -> Unit = {},
+    onNavigateToLogin: () -> Unit = {}
 ) {
     var selectedOption by remember { mutableStateOf(3) }
     Column(
@@ -127,6 +128,24 @@ fun OnboardingScreen(
                 }
             )
         }
+
+        val loginText = buildAnnotatedString {
+            append(stringResource(R.string.already_has_account_text))
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
+                append(stringResource(R.string.login_here))
+            }
+        }
+        Text(
+            text = loginText,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onNavigateToLogin() }
+                .padding(vertical = 8.dp)
+        )
+
         val termsText = buildAnnotatedString {
             append(stringResource(R.string.onboarding_terms_consent))
             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
