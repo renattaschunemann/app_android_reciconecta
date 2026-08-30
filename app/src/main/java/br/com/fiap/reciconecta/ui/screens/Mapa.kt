@@ -1,5 +1,9 @@
 package br.com.fiap.reciconecta.ui.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
@@ -12,12 +16,14 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Autorenew
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,7 +32,10 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.core.content.ContextCompat
 import br.com.fiap.reciconecta.ui.viewmodels.ColetaViewModel
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -34,6 +43,7 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import kotlinx.coroutines.launch
 
 // --- MODELO DOS CATADORES ---
 data class Catador(
@@ -53,6 +63,10 @@ fun MapaScreen(
     onBackClick: () -> Unit = {},
     onNavigateToHome: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
     val materiaisDoUsuario = viewModel.itemsList.map { it.name }.distinct()
 
     // Mock com coordenadas próximas à Vila Mariana (SP)
@@ -73,6 +87,33 @@ fun MapaScreen(
     val spVilaMariana = LatLng(-23.5898, -46.6342)
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(spVilaMariana, 14f)
+    }
+
+    // Função para buscar e centralizar na localização do usuário
+    fun centralizarNaLocalizacaoAtual() {
+        val permissionCheck = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                location?.let {
+                    val userLatLng = LatLng(it.latitude, it.longitude)
+                    scope.launch {
+                        cameraPositionState.animate(
+                            update = CameraUpdateFactory.newLatLngZoom(userLatLng, 15f),
+                            durationMs = 1000
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    // Solicitador de Permissão de Localização
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            centralizarNaLocalizacaoAtual()
+        }
     }
 
     Scaffold(
@@ -98,7 +139,7 @@ fun MapaScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
 
-            // 1. O MAPA DO GOOGLE
+            // 1. O MAPA DO GOOGLE COM BOTÃO FLUTUANTE DE GPS
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -106,9 +147,9 @@ fun MapaScreen(
             ) {
                 GoogleMap(
                     modifier = Modifier.fillMaxSize(),
-                    cameraPositionState = cameraPositionState
+                    cameraPositionState = cameraPositionState,
+                    uiSettings = com.google.maps.android.compose.MapUiSettings(zoomControlsEnabled = false)
                 ) {
-                    // Encontra o ID do catador mais próximo entre os filtrados
                     val catadorMaisProximoId = catadoresFiltrados.minByOrNull { it.distanciaKm }?.id
 
                     catadoresFiltrados.forEach { catador ->
@@ -120,7 +161,6 @@ fun MapaScreen(
                             markerState.showInfoWindow()
                         }
 
-                        // Se for o mais próximo, usamos a cor AZUL; caso contrário, a padrão (VERMELHA)
                         val markerColor = if (catador.id == catadorMaisProximoId) {
                             BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
                         } else {
@@ -134,6 +174,28 @@ fun MapaScreen(
                             icon = markerColor
                         )
                     }
+                }
+
+                // Botão Flutuante (FAB) para centralizar na localização do usuário mantendo a identidade visual
+                FloatingActionButton(
+                    onClick = {
+                        val permissionCheck = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+                        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+                            centralizarNaLocalizacaoAtual()
+                        } else {
+                            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                        }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp),
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = Color(0xFF1B4332)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.MyLocation,
+                        contentDescription = "Minha Localização"
+                    )
                 }
             }
 

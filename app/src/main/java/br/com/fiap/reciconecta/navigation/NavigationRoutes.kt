@@ -10,7 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
-// Imports de TODAS as suas telas baseadas na sua estrutura de pastas
+// Imports das telas
 import br.com.fiap.reciconecta.ui.screens.ColetaScreen
 import br.com.fiap.reciconecta.ui.screens.CriarPerfilScreen
 import br.com.fiap.reciconecta.ui.screens.ImpactoScreen
@@ -28,7 +28,7 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
 
     NavHost(
         navController = navController,
-        startDestination = ScreenRoutes.CriarPerfil.route // 1. Fluxo correto: começa no perfil
+        startDestination = ScreenRoutes.CriarPerfil.route
     ) {
 
         // --- TELA CRIAR PERFIL ---
@@ -36,7 +36,6 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
             CriarPerfilScreen(
                 onBackClick = { navController.popBackStack() },
                 onCreateProfileClick = { _, _, _, _, _ ->
-                    // 2. Vai para a Home e impede o usuário de voltar para a tela de criação apertando "Voltar"
                     navController.navigate(ScreenRoutes.Home.route) {
                         popUpTo(ScreenRoutes.CriarPerfil.route) { inclusive = true }
                     }
@@ -49,7 +48,7 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
             ImpactoScreen(
                 onNavigate = { destination ->
                     navController.navigate(destination) {
-                        launchSingleTop = true // Evita empilhar várias telas iguais
+                        launchSingleTop = true
                         restoreState = true
                     }
                 }
@@ -69,24 +68,12 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
         }
 
         // --- TELA DE COLETAS ---
-        composable(ScreenRoutes.Coletas.route) { backStackEntry ->
-            val savedStateHandle = backStackEntry.savedStateHandle
-            val scannedName = savedStateHandle.get<String>("scanned_name")
-            val scannedUnit = savedStateHandle.get<String>("scanned_unit")
-
+        composable(ScreenRoutes.Coletas.route) {
             ColetaScreen(
                 viewModel = sharedViewModel,
-                scannedItemName = scannedName,
-                scannedItemUnit = scannedUnit,
-                onClearScannedData = {
-                    savedStateHandle.remove<String>("scanned_name")
-                    savedStateHandle.remove<String>("scanned_unit")
-                },
+                onBackClick = { navController.popBackStack() },
                 onAddItemClick = { navController.navigate(ScreenRoutes.Scanner.route) },
-                onConfirmClick = { navController.navigate(ScreenRoutes.Mapa.route) },
-                onNavigate = { destination ->
-                    navController.navigate(destination) { launchSingleTop = true }
-                }
+                onNavigateToMap = { navController.navigate(ScreenRoutes.Mapa.route) }
             )
         }
 
@@ -94,9 +81,15 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
         composable(ScreenRoutes.Scanner.route) {
             ScannerScreen(
                 onBackClick = { navController.popBackStack() },
-                onItemScanned = { nome, unidade ->
-                    navController.previousBackStackEntry?.savedStateHandle?.set("scanned_name", nome)
-                    navController.previousBackStackEntry?.savedStateHandle?.set("scanned_unit", unidade)
+                onItemScanned = { nome, qtd, unidade ->
+                    sharedViewModel.addItem(
+                        br.com.fiap.reciconecta.ui.viewmodels.ColetaItem(
+                            id = System.currentTimeMillis().toString(),
+                            name = nome,
+                            amount = qtd,
+                            unit = unidade
+                        )
+                    )
                     navController.popBackStack()
                 }
             )

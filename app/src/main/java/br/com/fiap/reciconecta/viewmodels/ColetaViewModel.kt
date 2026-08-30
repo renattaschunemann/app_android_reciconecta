@@ -2,8 +2,14 @@ package br.com.fiap.reciconecta.ui.viewmodels
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
-import br.com.fiap.reciconecta.ui.screens.ColetaItem
 
+// Definimos o modelo aqui mesmo para evitar conflitos de pacote
+data class ColetaItem(
+    val id: String,
+    val name: String,
+    val amount: Double,
+    val unit: String
+)
 class ColetaViewModel : ViewModel() {
 
     // Lista persistida na memória com dados mockados
