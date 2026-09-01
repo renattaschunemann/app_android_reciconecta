@@ -16,6 +16,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import androidx.compose.ui.res.stringResource
+import br.com.fiap.reciconecta.R
+
 @Composable
 fun ProfileBottomActionButtons(
     primaryButtonText: String,
@@ -72,14 +75,14 @@ fun ProfileBottomActionButtons(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Já possui uma conta? ",
+                    text = stringResource(R.string.already_has_account_text),
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color(0xFF2D2D2D)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "Faça Login",
+                    text = stringResource(R.string.login_here),
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF1B4332)

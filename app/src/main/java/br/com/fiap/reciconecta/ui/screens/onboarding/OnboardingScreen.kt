@@ -69,7 +69,7 @@ fun OnboardingScreen(
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.reciconecta_logo),
-                    contentDescription = "Reciconecta Logo",
+                    contentDescription = stringResource(R.string.app_name),
                     modifier = Modifier.fillMaxHeight(),
                     contentScale = ContentScale.Fit
                 )

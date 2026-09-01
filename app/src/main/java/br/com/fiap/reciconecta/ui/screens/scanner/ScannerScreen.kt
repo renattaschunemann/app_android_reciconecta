@@ -56,6 +56,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.compose.ui.res.stringResource
+import br.com.fiap.reciconecta.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,10 +94,10 @@ fun ScannerScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Scanner de Materiais", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.scanner_materials_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -136,7 +138,7 @@ fun ScannerScreen(
                 )
             } else {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Permissão de câmera negada.", color = Color.Red)
+                    Text(stringResource(R.string.camera_permission_denied), color = Color.Red)
                 }
             }
 
@@ -161,7 +163,7 @@ fun ScannerScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Aponte a câmera para o material reciclável",
+                        text = stringResource(R.string.scanner_prompt),
                         color = Color.White,
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -182,7 +184,7 @@ fun ScannerScreen(
                     ) {
                         Icon(Icons.Default.AddCircle, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Adicionar Manualmente", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.action_add_manually), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -196,25 +198,31 @@ fun ScannerScreen(
         AlertDialog(
             onDismissRequest = { showDialog = false },
             title = {
-                Text(text = "Adicionar Material", fontWeight = FontWeight.Bold)
+                Text(text = stringResource(R.string.add_material_title), fontWeight = FontWeight.Bold)
             },
             text = {
                 Column {
-                    Text("Selecione o tipo de material:", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                    Text(stringResource(R.string.select_material_type), style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    val materiaisOpcoes = listOf("PET/Plástico", "Papelão", "Vidro", "Metal", "Óleo de Cozinha")
+                    val materiaisOpcoesList = listOf(
+                        "PET/Plástico" to R.string.material_plastic,
+                        "Papelão" to R.string.material_cardboard,
+                        "Vidro" to R.string.material_glass,
+                        "Metal" to R.string.tag_metal,
+                        "Óleo de Cozinha" to R.string.material_cooking_oil
+                    )
 
-                    materiaisOpcoes.chunked(2).forEach { linha ->
+                    materiaisOpcoesList.chunked(2).forEach { linha ->
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            linha.forEach { material ->
+                            linha.forEach { (materialKey, resId) ->
                                 FilterChip(
-                                    selected = materialSelecionado == material,
-                                    onClick = { materialSelecionado = material },
-                                    label = { Text(material, fontSize = 12.sp) },
+                                    selected = materialSelecionado == materialKey,
+                                    onClick = { materialSelecionado = materialKey },
+                                    label = { Text(stringResource(resId), fontSize = 12.sp) },
                                     modifier = Modifier.weight(1f)
                                 )
                             }
@@ -229,7 +237,7 @@ fun ScannerScreen(
                             // Substitui vírgula por ponto para aceitar o formato pt-BR digitado pelo usuário
                             quantidadeDigitada = input.replace('.', ',')
                         },
-                        label = { Text("Quantidade (ex: 1,500)") },
+                        label = { Text(stringResource(R.string.label_quantity_placeholder)) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
@@ -237,7 +245,7 @@ fun ScannerScreen(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     OutlinedTextField(
-                        value = "Unidade: ${unidadeAutomatica.uppercase()}",
+                        value = stringResource(R.string.unit_label_format, unidadeAutomatica.uppercase()),
                         onValueChange = {},
                         enabled = false,
                         modifier = Modifier.fillMaxWidth(),
@@ -259,12 +267,12 @@ fun ScannerScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B4332))
                 ) {
-                    Text("Confirmar", color = Color.White)
+                    Text(stringResource(R.string.action_confirm), color = Color.White)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("Cancelar", color = Color.Gray)
+                    Text(stringResource(R.string.action_cancel), color = Color.Gray)
                 }
             }
         )

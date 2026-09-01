@@ -21,6 +21,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import br.com.fiap.reciconecta.R
 import br.com.fiap.reciconecta.data.local.datastore.RecyclingPreferences
 import br.com.fiap.reciconecta.data.repository.RecyclingRepositoryImpl
 import br.com.fiap.reciconecta.ui.viewmodels.ColetaViewModel
@@ -40,16 +42,25 @@ fun ColetaScreen(
     val preferences = remember { RecyclingPreferences(context) }
     val recyclingRepository = remember { RecyclingRepositoryImpl(preferences) }
 
-    // Cálculo dinâmico do valor estimado em R$ com base na quantidade de itens
-    val valorEstimadoTotal = itemsList.size * 3.00
+    val valorEstimadoTotal = itemsList.sumOf { item ->
+        val amt = item.amount
+        val nameLower = item.name.lowercase()
+        when {
+            nameLower.contains("plast") || nameLower.contains("pet") -> amt * 2.50
+            nameLower.contains("papel") || nameLower.contains("cardboard") -> amt * 0.80
+            nameLower.contains("metal") || nameLower.contains("alum") || nameLower.contains("ferro") -> amt * 4.00
+            else -> amt * 1.50
+        }
+    }
 
+   
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Itens para Coleta", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.coleta_items_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -82,7 +93,7 @@ fun ColetaScreen(
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(20.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Adicionar", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.action_add), fontSize = 15.sp, fontWeight = FontWeight.Bold)
                     }
 
                     // Botão para Confirmar Coleta e ir automaticamente para o Mapa
@@ -123,7 +134,7 @@ fun ColetaScreen(
                     ) {
                         Icon(Icons.Default.Map, contentDescription = null, modifier = Modifier.size(20.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Confirmar Coleta", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        Text(stringResource(R.string.action_confirm_coleta), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
                     }
                 }
             }
@@ -152,12 +163,12 @@ fun ColetaScreen(
                 ) {
                     Column {
                         Text(
-                            text = "Valor Estimado",
+                            text = stringResource(R.string.estimated_value),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color(0xFF2E7D32)
                         )
                         Text(
-                            text = "R$ %.2f".format(valorEstimadoTotal),
+                            text = stringResource(R.string.currency_format, valorEstimadoTotal),
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1B4332)
@@ -168,7 +179,7 @@ fun ColetaScreen(
                         color = Color(0xFF1B4332)
                     ) {
                         Text(
-                            text = "${itemsList.size} itens",
+                            text = stringResource(R.string.items_count_badge, itemsList.size),
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                             style = MaterialTheme.typography.labelMedium,
                             color = Color.White,
@@ -181,7 +192,7 @@ fun ColetaScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "Materiais Escaneados",
+                text = stringResource(R.string.scanned_materials_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
@@ -197,7 +208,7 @@ fun ColetaScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Nenhum item escaneado ainda.\nUse o botão abaixo para adicionar materiais.",
+                        text = stringResource(R.string.empty_items_message),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -232,7 +243,7 @@ fun ColetaScreen(
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
-                                        text = "Qtd: ${item.amount} ${item.unit}",
+                                        text = stringResource(R.string.item_quantity_format, item.amount.toString(), item.unit),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -243,7 +254,7 @@ fun ColetaScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Delete,
-                                        contentDescription = "Remover item",
+                                        contentDescription = stringResource(R.string.action_remove_item),
                                         tint = Color(0xFFD32F2F)
                                     )
                                 }

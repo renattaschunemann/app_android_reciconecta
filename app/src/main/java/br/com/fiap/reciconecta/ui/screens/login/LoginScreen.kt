@@ -90,7 +90,7 @@ fun LoginScreen(
                         modifier = Modifier.size(40.dp).clip(CircleShape).border(1.dp, MaterialTheme.colorScheme.outline, CircleShape).clickable { onBackClick() },
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back), tint = MaterialTheme.colorScheme.onSurface)
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(
@@ -116,7 +116,7 @@ fun LoginScreen(
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.reciconecta_logo),
-                    contentDescription = "Reciconecta Logo",
+                    contentDescription = stringResource(R.string.app_name),
                     modifier = Modifier.fillMaxHeight(),
                     contentScale = ContentScale.Fit
                 )
@@ -170,7 +170,7 @@ fun LoginScreen(
                 trailingIcon = {
                     val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(imageVector = image, contentDescription = null)
+                        Icon(imageVector = image, contentDescription = stringResource(R.string.show_password))
                     }
                 },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done, keyboardType = KeyboardType.Password),
@@ -191,10 +191,10 @@ fun LoginScreen(
             Button(
                 onClick = {
                     var isValid = true
-                    if (email.trim().isEmpty()) { emailError = "E-mail não pode ser vazio"; isValid = false }
-                    else if (!email.contains("@")) { emailError = "E-mail inválido"; isValid = false }
+                    if (email.trim().isEmpty()) { emailError = context.getString(R.string.error_email_empty); isValid = false }
+                    else if (!email.contains("@")) { emailError = context.getString(R.string.error_email_invalid); isValid = false }
 
-                    if (senha.isEmpty()) { senhaError = "Senha não pode ser vazia"; isValid = false }
+                    if (senha.isEmpty()) { senhaError = context.getString(R.string.error_password_min); isValid = false }
 
                     if (isValid) {
                         scope.launch {

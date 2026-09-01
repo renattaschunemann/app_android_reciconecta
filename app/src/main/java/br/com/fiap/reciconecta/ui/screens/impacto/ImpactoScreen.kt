@@ -147,7 +147,7 @@ fun ImpactoScreen(
             val userMaterials = userProfile?.materiais ?: emptyList()
             if (userMaterials.isEmpty()) {
                 Text(
-                    text = "Nenhum material selecionado no perfil.",
+                    text = stringResource(R.string.error_materials_empty),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium
                 )

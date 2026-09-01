@@ -88,7 +88,16 @@ fun CriarPerfilScreen(
     var confirmarSenha by remember { mutableStateOf("") }
 
     // Materiais
-    val materiaisDisponiveis = listOf("Plástico (PET)", "Papel / Papelão", "Metal / Alumínio", "Vidro", "Eletrônicos")
+    val materiaisOpcoes = remember {
+        listOf(
+            "Plástico (PET)" to R.string.material_plastic,
+            "Papel / Papelão" to R.string.material_paper,
+            "Metal / Alumínio" to R.string.material_metal,
+            "Vidro" to R.string.material_glass,
+            "Eletrônicos" to R.string.material_electronics
+        )
+    }
+    val materiaisDisponiveis = remember { materiaisOpcoes.map { it.first } }
     val materiaisSelecionados = remember { mutableStateListOf<String>() }
     var outrosMateriais by remember { mutableStateOf("") }
     var showOutrosField by remember { mutableStateOf(false) }
@@ -171,7 +180,7 @@ fun CriarPerfilScreen(
         AlertDialog(
             onDismissRequest = { showImagePickerDialog = false },
             title = { Text(stringResource(R.string.create_profile_title), fontWeight = FontWeight.Bold) },
-            text = { Text("Escolha como deseja adicionar sua foto:") },
+            text = { Text(stringResource(R.string.choose_photo_source)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -188,7 +197,7 @@ fun CriarPerfilScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.CameraAlt, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Câmera")
+                        Text(stringResource(R.string.camera))
                     }
                 }
             },
@@ -202,7 +211,7 @@ fun CriarPerfilScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Photo, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Galeria")
+                        Text(stringResource(R.string.gallery))
                     }
                 }
             }
@@ -233,7 +242,7 @@ fun CriarPerfilScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar",
+                            contentDescription = stringResource(R.string.action_back),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -242,13 +251,13 @@ fun CriarPerfilScreen(
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = if (isEditMode) "Editar Perfil" else stringResource(R.string.create_profile_title),
+                            text = if (isEditMode) stringResource(R.string.action_edit_profile) else stringResource(R.string.create_profile_title),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Pessoa Física",
+                            text = stringResource(R.string.individual_person),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -304,7 +313,7 @@ fun CriarPerfilScreen(
                     if (profileImageUri != null) {
                         AsyncImage(
                             model = profileImageUri,
-                            contentDescription = "Foto selecionada",
+                            contentDescription = stringResource(R.string.selected_photo),
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
                         )
@@ -322,7 +331,7 @@ fun CriarPerfilScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.PhotoCamera,
-                        contentDescription = "Alterar avatar",
+                        contentDescription = stringResource(R.string.change_avatar),
                         tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(16.dp)
                     )
@@ -422,7 +431,7 @@ fun CriarPerfilScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            FormLabel(text = "MATERIAIS QUE VOCÊ RECICLA *")
+            FormLabel(text = stringResource(R.string.label_materials_recycled))
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -430,15 +439,15 @@ fun CriarPerfilScreen(
                     .background(MaterialTheme.colorScheme.surface)
                     .padding(8.dp)
             ) {
-                materiaisDisponiveis.forEach { material ->
+                materiaisOpcoes.forEach { (materialKey, resId) ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                if (material in materiaisSelecionados) {
-                                    materiaisSelecionados.remove(material)
+                                if (materialKey in materiaisSelecionados) {
+                                    materiaisSelecionados.remove(materialKey)
                                 } else {
-                                    materiaisSelecionados.add(material)
+                                    materiaisSelecionados.add(materialKey)
                                 }
                                 if (materiaisError != null) materiaisError = null
                             }
@@ -446,18 +455,18 @@ fun CriarPerfilScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
-                            checked = material in materiaisSelecionados,
+                            checked = materialKey in materiaisSelecionados,
                             onCheckedChange = {
-                                if (material in materiaisSelecionados) {
-                                    materiaisSelecionados.remove(material)
+                                if (materialKey in materiaisSelecionados) {
+                                    materiaisSelecionados.remove(materialKey)
                                 } else {
-                                    materiaisSelecionados.add(material)
+                                    materiaisSelecionados.add(materialKey)
                                 }
                                 if (materiaisError != null) materiaisError = null
                             }
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = material, style = MaterialTheme.typography.bodyMedium)
+                        Text(text = stringResource(resId), style = MaterialTheme.typography.bodyMedium)
                     }
                 }
 
@@ -475,7 +484,7 @@ fun CriarPerfilScreen(
                         onCheckedChange = { showOutrosField = it }
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Outros", style = MaterialTheme.typography.bodyMedium)
+                    Text(text = stringResource(R.string.others), style = MaterialTheme.typography.bodyMedium)
                 }
 
                 if (showOutrosField) {
@@ -485,7 +494,7 @@ fun CriarPerfilScreen(
                             outrosMateriais = it
                             if (materiaisError != null) materiaisError = null
                         },
-                        placeholder = { Text("Digite os materiais separados por vírgula") },
+                        placeholder = { Text(stringResource(R.string.others_materials_placeholder)) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp)
@@ -529,14 +538,14 @@ fun CriarPerfilScreen(
 
             // Senhas
             if (!isEditMode) {
-                FormLabel(text = "SENHA *")
+                FormLabel(text = stringResource(R.string.label_password))
                 FormPasswordField(
                     value = senha,
                     onValueChange = {
                         senha = it
                         if (senhaError != null) senhaError = null
                     },
-                    placeholder = "Mínimo 6 caracteres",
+                    placeholder = stringResource(R.string.placeholder_min_characters),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next, keyboardType = KeyboardType.Password),
                     isError = senhaError != null,
                     errorMessage = senhaError
@@ -544,14 +553,14 @@ fun CriarPerfilScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                FormLabel(text = "CONFIRMAR SENHA *")
+                FormLabel(text = stringResource(R.string.label_confirm_password))
                 FormPasswordField(
                     value = confirmarSenha,
                     onValueChange = {
                         confirmarSenha = it
                         if (confirmarSenhaError != null) confirmarSenhaError = null
                     },
-                    placeholder = "Repita sua senha",
+                    placeholder = stringResource(R.string.placeholder_repeat_password),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done, keyboardType = KeyboardType.Password),
                     isError = confirmarSenhaError != null,
                     errorMessage = confirmarSenhaError
@@ -561,17 +570,17 @@ fun CriarPerfilScreen(
             }
 
             ProfileBottomActionButtons(
-                primaryButtonText = if (isEditMode) "Salvar Alterações" else stringResource(R.string.create_profile_title),
+                primaryButtonText = if (isEditMode) stringResource(R.string.action_save_changes) else stringResource(R.string.create_profile_title),
                 isEditMode = isEditMode,
                 onPrimaryClick = {
                     var isValid = true
 
                     // Validação Nome Completo
                     if (nomeCompleto.trim().isEmpty()) {
-                        nomeError = "Nome completo não pode ser vazio"
+                        nomeError = context.getString(R.string.error_name_empty)
                         isValid = false
                     } else if (nomeCompleto.trim().split(" ").size < 2) {
-                        nomeError = "Digite seu nome completo (Nome e Sobrenome)"
+                        nomeError = context.getString(R.string.error_name_invalid)
                         isValid = false
                     } else {
                         nomeError = null
@@ -580,10 +589,10 @@ fun CriarPerfilScreen(
                     // Validação E-mail
                     val emailTrimmed = email.trim()
                     if (emailTrimmed.isEmpty()) {
-                        emailError = "E-mail não pode ser vazio"
+                        emailError = context.getString(R.string.error_email_empty)
                         isValid = false
                     } else if (!emailTrimmed.contains("@") || !emailTrimmed.contains(".com")) {
-                        emailError = "E-mail inválido (deve conter @ e .com)"
+                        emailError = context.getString(R.string.error_email_invalid)
                         isValid = false
                     } else {
                         emailError = null
@@ -592,10 +601,10 @@ fun CriarPerfilScreen(
                     // Validação Telefone
                     val phoneDigits = telefone.filter { it.isDigit() }
                     if (telefone.trim().isEmpty()) {
-                        telefoneError = "Telefone não pode ser vazio"
+                        telefoneError = context.getString(R.string.error_phone_empty)
                         isValid = false
                     } else if (phoneDigits.length < 10 || phoneDigits.length > 11) {
-                        telefoneError = "Telefone inválido (deve conter o DDD e 10 ou 11 dígitos)"
+                        telefoneError = context.getString(R.string.error_phone_invalid)
                         isValid = false
                     } else {
                         telefoneError = null
@@ -604,10 +613,10 @@ fun CriarPerfilScreen(
                     // Validação CPF
                     val cpfDigits = cpf.filter { it.isDigit() }
                     if (cpf.trim().isEmpty()) {
-                        cpfError = "CPF não pode ser vazio"
+                        cpfError = context.getString(R.string.error_cpf_empty)
                         isValid = false
                     } else if (cpfDigits.length != 11) {
-                        cpfError = "CPF inválido (deve conter exatamente 11 dígitos)"
+                        cpfError = context.getString(R.string.error_cpf_invalid)
                         isValid = false
                     } else {
                         cpfError = null
@@ -616,10 +625,10 @@ fun CriarPerfilScreen(
                     // Validação CEP
                     val cepDigits = bairroCep.filter { it.isDigit() }
                     if (bairroCep.trim().isEmpty()) {
-                        bairroCepError = "CEP não pode ser vazio"
+                        bairroCepError = context.getString(R.string.error_cep_empty)
                         isValid = false
                     } else if (cepDigits.length != 8) {
-                        bairroCepError = "CEP inválido (deve conter exatamente 8 números)"
+                        bairroCepError = context.getString(R.string.error_cep_invalid)
                         isValid = false
                     } else {
                         bairroCepError = null
@@ -632,17 +641,17 @@ fun CriarPerfilScreen(
                     }
 
                     if (listaMateriaisFinal.isEmpty()) {
-                        materiaisError = "Selecione pelo menos um tipo de material"
+                        materiaisError = context.getString(R.string.error_materials_empty)
                         isValid = false
                     }
 
                     if (!isEditMode) {
                         if (senha.length < 6) {
-                            senhaError = "A senha deve ter no mínimo 6 caracteres"
+                            senhaError = context.getString(R.string.error_password_min)
                             isValid = false
                         }
                         if (senha != confirmarSenha) {
-                            confirmarSenhaError = "As senhas não coincidem"
+                            confirmarSenhaError = context.getString(R.string.error_passwords_dont_match)
                             isValid = false
                         }
                     }
@@ -780,7 +789,7 @@ fun FormPasswordField(
             trailingIcon = {
                 val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Icon(imageVector = image, contentDescription = "Mostrar senha")
+                    Icon(imageVector = image, contentDescription = stringResource(R.string.show_password))
                 }
             },
             colors = OutlinedTextFieldDefaults.colors(

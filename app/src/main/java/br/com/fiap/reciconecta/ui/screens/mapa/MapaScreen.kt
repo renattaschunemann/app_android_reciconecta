@@ -45,6 +45,9 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
 
+import androidx.compose.ui.res.stringResource
+import br.com.fiap.reciconecta.R
+
 // --- MODELO DOS CATADORES ---
 data class Catador(
     val id: String,
@@ -119,10 +122,10 @@ fun MapaScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Catadores Próximos", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.map_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -194,7 +197,7 @@ fun MapaScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.MyLocation,
-                        contentDescription = "Minha Localização"
+                        contentDescription = stringResource(R.string.action_use_current_location)
                     )
                 }
             }
@@ -221,7 +224,7 @@ fun MapaScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text = "Selecione um catador para solicitar coleta",
+                        text = stringResource(R.string.map_subtitle),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -343,7 +346,7 @@ fun CatadorCard(
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Solicitar Coleta", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.coleta_title), fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

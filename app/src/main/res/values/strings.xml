@@ -1,6 +1,25 @@
 <resources>
     <string name="app_name">Reciconecta</string>
 
+    <!-- Navegação e ações -->
+    <string name="action_back">Voltar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_confirm">Confirmar</string>
+    <string name="action_add">Adicionar</string>
+    <string name="action_edit_profile">Editar Perfil</string>
+    <string name="action_logout">Sair</string>
+    <string name="action_delete_account">Excluir Conta</string>
+    <string name="action_save_changes">Salvar Alterações</string>
+    <string name="action_add_manually">Adicionar Manualmente</string>
+
+    <string name="nav_home">Início</string>
+    <string name="nav_collections">Coletas</string>
+    <string name="nav_profile">Perfil</string>
+    <string name="in_cio">Início</string>
+    <string name="coletas">Coletas</string>
+    <string name="perfil">Perfil</string>
+    <string name="inicio">Inicio</string>
+
     <!-- Onboarding / Initial Screen -->
     <string name="onboarding_subtitle">Conectando quem recicla com quem coleta</string>
     <string name="onboarding_selection_title">COMO VOCÊ VAI USAR O APP?</string>
@@ -13,10 +32,14 @@
     <string name="onboarding_terms_consent">Ao continuar você concorda com os </string>
     <string name="terms_of_use">Termos de Uso</string>
 
-    <!-- Criar Perfil Screen -->
+    <!-- Criar Perfil  -->
     <string name="create_profile_title">Criar Perfil</string>
     <string name="step_badge_text">Passo 1 de 1</string>
     <string name="avatar_change_instruction">Toque no ícone para alterar o avatar</string>
+    <string name="individual_person">Pessoa Física</string>
+    <string name="company_pj">Pessoa Jurídica (Empresa)</string>
+    <string name="collector">Catador / Cooperativa</string>
+    
     <string name="label_full_name">NOME COMPLETO *</string>
     <string name="placeholder_full_name">Como você quer ser chamado(a)</string>
     <string name="label_email">E-MAIL *</string>
@@ -31,14 +54,63 @@
     <string name="privacy_policy">Política de Privacidade</string>
     <string name="create_profile_consent_part2"> e a </string>
 
+    <string name="choose_photo_source">Escolha como deseja adicionar sua foto:</string>
+    <string name="camera">Câmera</string>
+    <string name="gallery">Galeria</string>
+    <string name="label_materials_recycled">MATERIAIS QUE VOCÊ RECICLA *</string>
+    <string name="label_materials_collected">MATERIAIS QUE VOCÊ COLETA *</string>
+    <string name="others">Outros</string>
+    <string name="others_materials_placeholder">Digite os materiais separados por vírgula</string>
+    <string name="label_confirm_password">CONFIRMAR SENHA *</string>
+    <string name="placeholder_min_characters">Mínimo 6 caracteres</string>
+    <string name="placeholder_repeat_password">Repita sua senha</string>
+    <string name="show_password">Mostrar senha</string>
+    <string name="selected_photo">Foto selecionada</string>
+    <string name="change_avatar">Alterar avatar</string>
+
+    <!-- PJ e coletor -->
+    <string name="label_company_name">RAZÃO SOCIAL / NOME DA EMPRESA *</string>
+    <string name="placeholder_company_name">Nome fantasia ou razão social</string>
+    <string name="label_cnpj">CNPJ *</string>
+    <string name="placeholder_cnpj">00.000.000/0001-00</string>
+    <string name="label_vehicle_transport">MEIO DE TRANSPORTE / VEÍCULO *</string>
+    <string name="vehicle_truck">Caminhão</string>
+    <string name="vehicle_utility">Utilitário / Sider</string>
+    <string name="vehicle_car_trailer">Carro com Reboque</string>
+    <string name="vehicle_tricycle">Triciclo Elétrico / Carroça</string>
+    <string name="vehicle_manual_cart">Carroça Manual</string>
+
+    <!-- Validaçao -->
+    <string name="error_name_empty">Nome completo não pode ser vazio</string>
+    <string name="error_name_invalid">Digite seu nome completo (Nome e Sobrenome)</string>
+    <string name="error_email_empty">E-mail não pode ser vazio</string>
+    <string name="error_email_invalid">E-mail inválido (deve conter @ e .com)</string>
+    <string name="error_phone_empty">Telefone não pode ser vazio</string>
+    <string name="error_phone_invalid">Telefone inválido (deve conter o DDD e 10 ou 11 dígitos)</string>
+    <string name="error_cpf_empty">CPF não pode ser vazio</string>
+    <string name="error_cpf_invalid">CPF inválido (deve conter exatamente 11 dígitos)</string>
+    <string name="error_cnpj_empty">CNPJ não pode ser vazio</string>
+    <string name="error_cnpj_invalid">CNPJ inválido (deve conter exatamente 14 dígitos)</string>
+    <string name="error_cep_empty">CEP não pode ser vazio</string>
+    <string name="error_cep_invalid">CEP inválido (deve conter exatamente 8 números)</string>
+    <string name="error_materials_empty">Selecione pelo menos um tipo de material</string>
+    <string name="error_password_min">A senha deve ter no mínimo 6 caracteres</string>
+    <string name="error_passwords_dont_match">As senhas não coincidem</string>
+    <string name="error_company_name_empty">Razão social não pode ser vazia</string>
+    <string name="error_vehicle_empty">Informe pelo menos um meio de transporte</string>
+
     <!-- Scanner Screen -->
     <string name="scanner_title">Identificar Material</string>
     <string name="scanner_instruction">Posicione o material na moldura</string>
     <string name="scanner_action_code">Código</string>
     <string name="scanner_action_gallery">Galeria</string>
-    <string name="nav_home">Início</string>
-    <string name="nav_collections">Coletas</string>
-    <string name="nav_profile">Perfil</string>
+    <string name="scanner_materials_title">Scanner de Materiais</string>
+    <string name="camera_permission_denied">Permissão de câmera negada.</string>
+    <string name="scanner_prompt">Aponte a câmera para o material reciclável</string>
+    <string name="add_material_title">Adicionar Material</string>
+    <string name="select_material_type">Selecione o tipo de material:</string>
+    <string name="label_quantity_placeholder">Quantidade (ex: 1,500)</string>
+    <string name="unit_label_format">Unidade: %1$s</string>
 
     <!-- Coleta Screen -->
     <string name="coleta_title">Solicitar Coleta</string>
@@ -59,7 +131,16 @@
     <string name="placeholder_observations">Ex.: Interfone 12, portaria 24h...</string>
     <string name="action_confirm_coleta">Confirmar Coleta</string>
 
-    <!-- Map Screen -->
+    <string name="coleta_items_title">Itens para Coleta</string>
+    <string name="estimated_value">Valor Estimado</string>
+    <string name="currency_format">R$ %.2f</string>
+    <string name="items_count_badge">%1$d itens</string>
+    <string name="scanned_materials_title">Materiais Escaneados</string>
+    <string name="empty_items_message">Nenhum item escaneado ainda.\nUse o botão abaixo para adicionar materiais.</string>
+    <string name="item_quantity_format">Qtd: %1$s %2$s</string>
+    <string name="action_remove_item">Remover item</string>
+
+    <!-- Mapa Screen -->
     <string name="map_title">Catadores próximos</string>
     <string name="map_filter">Filtrar</string>
     <string name="map_subtitle">Selecione um catador para solicitar coleta</string>
@@ -82,8 +163,14 @@
     <string name="tag_metal">Metal</string>
     <string name="review_time_days">2 dias atrás</string>
     <string name="review_time_weeks">1 semana atrás</string>
+    <string name="view_environmental_impact">Ver Meu Impacto Ambiental</string>
+    <string name="options_menu">Menu de Opções</string>
+    <string name="verified">Verificado</string>
+    <string name="attention">Atenção</string>
+    <string name="delete_account_warning">Esta ação é permanente e não poderá ser desfeita.</string>
+    <string name="delete_account_confirmation_checkbox">Realmente Deseja Excluir Sua conta e Seus dados da Aplicação?</string>
 
-    <!-- Impact Screen -->
+    <!-- Impacto Screen -->
     <string name="impact_title">Meu Impacto</string>
     <string name="impact_subtitle">Últimos 6 meses</string>
     <string name="stat_recycled">Reciclado</string>
@@ -94,7 +181,13 @@
     <string name="section_by_material">Por tipo de material</string>
     <string name="material_plastic">Plástico (PET)</string>
     <string name="material_paper">Papel / Papelão</string>
+    <string name="material_metal">Metal / Alumínio</string>
+    <string name="material_glass">Vidro</string>
+    <string name="material_electronics">Eletrônicos</string>
+    <string name="material_cooking_oil">Óleo de Cozinha</string>
+    <string name="material_cardboard">Papelão</string>
     <string name="action_recycle_now">Reciclar Agora</string>
+
     <!-- Login Screen -->
     <string name="login_title">Acessar Conta</string>
     <string name="login_subtitle">Entre para continuar ajudando o planeta</string>
@@ -105,9 +198,4 @@
     <string name="register_here">Cadastre-se</string>
     <string name="already_has_account_text">Já possui uma conta? </string>
     <string name="login_here">Faça Login</string>
-
-    <string name="in_cio">Início</string>
-    <string name="coletas">Coletas</string>
-    <string name="perfil">Perfil</string>
-    <string name="inicio">Inicio</string>
 </resources>

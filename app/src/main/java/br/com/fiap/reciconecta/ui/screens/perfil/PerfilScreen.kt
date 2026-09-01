@@ -55,7 +55,7 @@ fun PerfilScreen(
                         IconButton(onClick = { menuExpanded = true }) {
                             Icon(
                                 imageVector = Icons.Default.Menu,
-                                contentDescription = "Menu de Opções"
+                                contentDescription = stringResource(R.string.options_menu)
                             )
                         }
 
@@ -64,7 +64,7 @@ fun PerfilScreen(
                             onDismissRequest = { menuExpanded = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Editar Perfil") },
+                                text = { Text(stringResource(R.string.action_edit_profile)) },
                                 onClick = {
                                     menuExpanded = false
                                     val tipo = userProfile?.tipoPerfil ?: "PF"
@@ -72,7 +72,7 @@ fun PerfilScreen(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Sair") },
+                                text = { Text(stringResource(R.string.action_logout)) },
                                 onClick = {
                                     menuExpanded = false
                                     onLogoutClick()
@@ -80,7 +80,7 @@ fun PerfilScreen(
                             )
                             DropdownMenuItem(
                                 text = {
-                                    Text("Excluir Conta", color = MaterialTheme.colorScheme.error)
+                                    Text(stringResource(R.string.action_delete_account), color = MaterialTheme.colorScheme.error)
                                 },
                                 onClick = {
                                     menuExpanded = false
@@ -144,7 +144,7 @@ fun PerfilScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Check,
-                            contentDescription = "Verificado",
+                            contentDescription = stringResource(R.string.verified),
                             tint = Color.White,
                             modifier = Modifier.size(14.dp)
                         )
@@ -238,7 +238,7 @@ fun PerfilScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Ver Meu Impacto Ambiental",
+                            text = stringResource(R.string.view_environmental_impact),
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -328,14 +328,14 @@ fun PerfilScreen(
             onDismissRequest = { showDeleteDialog = false },
             title = {
                 Text(
-                    text = "Atenção",
+                    text = stringResource(R.string.attention),
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.error
                 )
             },
             text = {
                 Column {
-                    Text("Esta ação é permanente e não poderá ser desfeita.")
+                    Text(stringResource(R.string.delete_account_warning))
                     Spacer(modifier = Modifier.height(16.dp))
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -347,7 +347,7 @@ fun PerfilScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Realmente Deseja Excluir Sua conta e Seus dados da Aplicação?",
+                            text = stringResource(R.string.delete_account_confirmation_checkbox),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -365,12 +365,12 @@ fun PerfilScreen(
                         contentColor = MaterialTheme.colorScheme.onError
                     )
                 ) {
-                    Text("Confirmar", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.action_confirm), fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.action_cancel))
                 }
             }
         )
